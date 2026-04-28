@@ -7,6 +7,12 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Home::index');
 
+// Route OPTIONS catch-all untuk semua endpoint /api/* agar CORS preflight
+// dapat ditangani oleh CORS filter sebelum JwtFilter dijalankan.
+$routes->options('api/(:any)', static function () {
+    return service('response')->setStatusCode(204);
+});
+
 $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function ($routes) {
     $routes->post('login', 'AuthController::login');
     $routes->get('petugas/(:num)', 'PetugasController::show/$1');
