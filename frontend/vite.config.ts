@@ -3,7 +3,11 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
-export default defineConfig({
+// Saat build produksi, asset disajikan dari "/app/" oleh CodeIgniter
+// (lihat public/.htaccess dan Home::index). Saat dev, Vite berjalan di "/"
+// langsung pada port 5173.
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/app/' : '/',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
@@ -23,4 +27,4 @@ export default defineConfig({
     outDir: '../public/app',
     emptyOutDir: true,
   },
-})
+}))

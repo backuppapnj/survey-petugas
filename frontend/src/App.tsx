@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import SurveyPage from '@/pages/SurveyPage'
 import LoginPage from '@/pages/LoginPage'
 import DashboardPage from '@/pages/DashboardPage'
@@ -9,6 +9,9 @@ import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 export default function App() {
   return (
     <Routes>
+      {/* Root: arahkan ke login admin secara default */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+
       <Route path="/survey/:petugasId" element={<SurveyPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route
@@ -21,6 +24,9 @@ export default function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/petugas" element={<PetugasPage />} />
       </Route>
+
+      {/* Fallback untuk path SPA yang tidak dikenali */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   )
 }
