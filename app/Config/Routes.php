@@ -19,5 +19,6 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function ($
         $routes->put('petugas/(:num)', 'PetugasController::update/$1');
         $routes->delete('petugas/(:num)', 'PetugasController::delete/$1');
         $routes->get('survei/rekap', 'SurveiController::rekap');
+        $routes->get('survei/export', 'ExportController::excel');
     });
 });
