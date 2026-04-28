@@ -29,3 +29,28 @@ vi.mock('@/components/ui/confetti', () => ({
   ConfettiButton: ({ children }: { children?: React.ReactNode }) =>
     React.createElement('button', null, children),
 }))
+
+// Mock NumberTicker — di jsdom, useInView tidak pernah trigger sehingga
+// text content tidak pernah ter-update dari startValue. Render value langsung.
+vi.mock('@/components/ui/number-ticker', () => ({
+  NumberTicker: ({ value, decimalPlaces = 0 }: { value: number; decimalPlaces?: number }) =>
+    React.createElement(
+      'span',
+      null,
+      Intl.NumberFormat('en-US', {
+        minimumFractionDigits: decimalPlaces,
+        maximumFractionDigits: decimalPlaces,
+      }).format(Number(value.toFixed(decimalPlaces))),
+    ),
+}))
+
+// Mock Recharts ResponsiveContainer — di jsdom tidak ada layout sehingga
+// chart tidak akan ter-render. Stub jadi div pembungkus saja.
+vi.mock('recharts', async () => {
+  const actual = await vi.importActual<typeof import('recharts')>('recharts')
+  return {
+    ...actual,
+    ResponsiveContainer: ({ children }: { children: React.ReactNode }) =>
+      React.createElement('div', { style: { width: 800, height: 400 } }, children),
+  }
+})
