@@ -29,4 +29,13 @@ class Services extends BaseService
      *     return new \CodeIgniter\Example();
      * }
      */
+
+    public static function jwtAuth(bool $getShared = true): \App\Services\JwtAuth
+    {
+        if ($getShared) {
+            return static::getSharedInstance('jwtAuth');
+        }
+
+        return new \App\Services\JwtAuth();
+    }
 }
