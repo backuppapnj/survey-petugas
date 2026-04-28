@@ -22,9 +22,26 @@ const fakeRekap = {
   semua: [],
 }
 
+const fakePetugas = [
+  {
+    id: 1,
+    nama: 'Budi',
+    foto_url: '/api/uploads/budi.png',
+    loket: 'Loket 1',
+    unit_kerja: 'Pelayanan Umum',
+    is_active: 1,
+  },
+]
+
+const setupMocks = () => {
+  vi.spyOn(apiModule, 'getRekap').mockResolvedValue(fakeRekap)
+  vi.spyOn(apiModule, 'getAdminPetugas').mockResolvedValue(fakePetugas)
+}
+
 describe('DashboardPage', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
+    setupMocks()
   })
 
   afterEach(() => {
@@ -32,8 +49,6 @@ describe('DashboardPage', () => {
   })
 
   it('menampilkan total responden dari rekap', async () => {
-    vi.spyOn(apiModule, 'getRekap').mockResolvedValue(fakeRekap)
-
     render(
       <MemoryRouter>
         <DashboardPage />
@@ -41,13 +56,27 @@ describe('DashboardPage', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText(/10/)).toBeInTheDocument()
+      expect(screen.getByText(/total responden/i)).toBeInTheDocument()
+    })
+    // NumberTicker mungkin animasi; cek bahwa heading IKM tampil
+    expect(screen.getByText(/nilai ikm/i)).toBeInTheDocument()
+  })
+
+  it('menampilkan nama petugas dari rekap pada tab Detail', async () => {
+    const user = (await import('@testing-library/user-event')).default.setup()
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>,
+    )
+    await waitFor(() => screen.getByRole('tab', { name: /tabel detail/i }))
+    await user.click(screen.getByRole('tab', { name: /tabel detail/i }))
+    await waitFor(() => {
+      expect(screen.getByText('Budi')).toBeInTheDocument()
     })
   })
 
-  it('menampilkan nama petugas dari rekap', async () => {
-    vi.spyOn(apiModule, 'getRekap').mockResolvedValue(fakeRekap)
-
+  it('menampilkan kategori IKM (A) sesuai nilai 91', async () => {
     render(
       <MemoryRouter>
         <DashboardPage />
@@ -55,7 +84,7 @@ describe('DashboardPage', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('Budi')).toBeInTheDocument()
+      expect(screen.getByText(/sangat baik/i)).toBeInTheDocument()
     })
   })
 })

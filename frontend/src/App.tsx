@@ -3,17 +3,22 @@ import SurveyPage from '@/pages/SurveyPage'
 import LoginPage from '@/pages/LoginPage'
 import DashboardPage from '@/pages/DashboardPage'
 import PetugasPage from '@/pages/PetugasPage'
+import NotFoundPage from '@/pages/NotFoundPage'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 
 export default function App() {
   return (
     <Routes>
-      {/* Root: arahkan ke login admin secara default */}
       <Route path="/" element={<Navigate to="/login" replace />} />
 
+      {/* Survey publik (kiosk-friendly) */}
       <Route path="/survey/:petugasId" element={<SurveyPage />} />
+
+      {/* Login admin */}
       <Route path="/login" element={<LoginPage />} />
+
+      {/* Area admin */}
       <Route
         element={
           <ProtectedRoute>
@@ -25,8 +30,8 @@ export default function App() {
         <Route path="/petugas" element={<PetugasPage />} />
       </Route>
 
-      {/* Fallback untuk path SPA yang tidak dikenali */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      {/* 404 informatif */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
 }

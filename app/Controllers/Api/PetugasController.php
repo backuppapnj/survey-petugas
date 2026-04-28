@@ -153,6 +153,25 @@ class PetugasController extends ResourceController
     }
 
     /**
+     * POST /api/admin/petugas/{id}/restore — reaktivasi petugas non-aktif.
+     */
+    public function restore($id = null): ResponseInterface
+    {
+        $petugas = $this->petugasModel->find((int) $id);
+
+        if ($petugas === null) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'status' => 404,
+                'error'  => 'Petugas tidak ditemukan',
+            ]);
+        }
+
+        $this->petugasModel->update($id, ['is_active' => 1]);
+
+        return $this->response->setJSON(['message' => 'Petugas berhasil diaktifkan kembali']);
+    }
+
+    /**
      * Helper untuk serialisasi petugas ke format API.
      */
     private function serialize(array $petugas, bool $includeStatus = false): array

@@ -24,6 +24,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function ($
         $routes->post('petugas', 'PetugasController::create');
         $routes->put('petugas/(:num)', 'PetugasController::update/$1');
         $routes->delete('petugas/(:num)', 'PetugasController::delete/$1');
+        $routes->post('petugas/(:num)/restore', 'PetugasController::restore/$1');
         $routes->get('survei/rekap', 'SurveiController::rekap');
         $routes->get('survei/export', 'ExportController::excel');
     });

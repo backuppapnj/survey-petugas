@@ -1,0 +1,19 @@
+{
+  "name": "Survei Kepuasan PTSP",
+  "short_name": "Survei PTSP",
+  "description": "Aplikasi survei kepuasan masyarakat terhadap petugas Pelayanan Terpadu Satu Pintu (PTSP).",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#6366f1",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

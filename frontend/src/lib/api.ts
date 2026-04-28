@@ -74,6 +74,10 @@ export async function deletePetugas(id: number): Promise<{ message: string }> {
   return (await api.delete<{ message: string }>(`/admin/petugas/${id}`)).data
 }
 
+export async function restorePetugas(id: number): Promise<{ message: string }> {
+  return (await api.post<{ message: string }>(`/admin/petugas/${id}/restore`)).data
+}
+
 export async function getRekap(start: string, end: string): Promise<RekapResponse> {
   return (await api.get<RekapResponse>(`/admin/survei/rekap?start=${start}&end=${end}`)).data
 }
