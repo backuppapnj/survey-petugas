@@ -3,13 +3,13 @@ import { useParams } from 'react-router-dom'
 import { CheckCircle2, MessageSquareText, RotateCw, UserX } from 'lucide-react'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { AnimatedGridPattern } from '@/components/ui/animated-grid-pattern'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { BorderBeam } from '@/components/ui/border-beam'
 import { BlurFade } from '@/components/ui/blur-fade'
-import { DotPattern } from '@/components/ui/dot-pattern'
 import { Confetti, type ConfettiRef } from '@/components/ui/confetti'
 import { ShimmerButton } from '@/components/ui/shimmer-button'
 import { StarRating } from '@/components/survey/StarRating'
@@ -39,6 +39,7 @@ export default function SurveyPage() {
   const [submitting, setSubmitting] = useState<boolean>(false)
   const [success, setSuccess] = useState<boolean>(false)
   const confettiRef = useRef<ConfettiRef>(null)
+  const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!petugasId) return
@@ -59,13 +60,17 @@ export default function SurveyPage() {
   const isReady = filledCount === ASPEK.length
 
   const reset = () => {
+    if (resetTimeoutRef.current) {
+      clearTimeout(resetTimeoutRef.current)
+      resetTimeoutRef.current = null
+    }
     setRatings(EMPTY_RATINGS)
     setSaran('')
     setSuccess(false)
   }
 
   const handleSubmit = async () => {
-    if (!petugas || !isReady) return
+    if (!petugas || !isReady || submitting) return
     setSubmitting(true)
     try {
       await submitSurvei({
@@ -80,7 +85,10 @@ export default function SurveyPage() {
       confettiRef.current?.fire?.({})
       toast.success('Terima kasih atas penilaian Anda')
       // Auto-reset 6 detik untuk mode kiosk; cukup waktu untuk membaca pesan
-      setTimeout(reset, 6000)
+      resetTimeoutRef.current = setTimeout(() => {
+        resetTimeoutRef.current = null
+        reset()
+      }, 6000)
     } catch {
       toast.error('Gagal mengirim survei. Silakan coba lagi.')
     } finally {
@@ -88,16 +96,35 @@ export default function SurveyPage() {
     }
   }
 
+  useEffect(() => {
+    return () => {
+      if (resetTimeoutRef.current) {
+        clearTimeout(resetTimeoutRef.current)
+      }
+    }
+  }, [])
+
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center bg-background p-4">
-      <DotPattern
-        className={cn('[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]')}
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.16),_transparent_38%),linear-gradient(180deg,_rgba(248,250,252,0.98),_rgba(239,246,255,0.95))] p-4 dark:bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.22),_transparent_35%),linear-gradient(180deg,_rgba(2,6,23,0.96),_rgba(15,23,42,0.98))]">
+      <AnimatedGridPattern
+        data-testid="survey-grid-pattern"
+        numSquares={52}
+        maxOpacity={0.32}
+        duration={3.6}
+        repeatDelay={0.3}
+        className={cn(
+          'text-sky-400/35 [mask-image:radial-gradient(540px_circle_at_center,white,transparent)]',
+        )}
       />
       <Confetti ref={confettiRef} className="pointer-events-none absolute inset-0 z-50" />
 
       <BlurFade delay={0.1}>
-        <Card className="relative w-full max-w-md overflow-hidden">
-          <BorderBeam size={250} duration={12} />
+        <Card
+          data-testid="survey-card"
+          className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-blue-500/20 bg-card/94 shadow-[0_30px_80px_-44px_rgba(37,99,235,0.6)] backdrop-blur-sm"
+        >
+          <div className="absolute inset-x-6 top-0 h-1.5 rounded-full bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-300 opacity-90" />
+          <BorderBeam size={250} duration={12} colorFrom="#38bdf8" colorTo="#2563eb" />
           <CardContent className="space-y-6 p-6">
             {loading ? (
               <div className="space-y-4">
@@ -121,7 +148,12 @@ export default function SurveyPage() {
                 <div className="flex flex-col items-center gap-3">
                   <Avatar className="size-24">
                     <AvatarImage src={petugas.foto_url} alt={petugas.nama} />
-                    <AvatarFallback>{petugas.nama.charAt(0)}</AvatarFallback>
+                    <AvatarFallback
+                      data-testid="survey-avatar-fallback"
+                      className="bg-gradient-to-br from-sky-500 to-blue-600 text-xl font-semibold text-white"
+                    >
+                      {petugas.nama.charAt(0)}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="text-center">
                     <h1 className="text-xl font-semibold">{petugas.nama}</h1>
@@ -159,9 +191,9 @@ export default function SurveyPage() {
                           {filledCount} / {ASPEK.length} aspek
                         </span>
                       </div>
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-blue-100 dark:bg-blue-950/60">
                         <div
-                          className="h-full bg-primary transition-all duration-300"
+                          className="h-full bg-gradient-to-r from-sky-500 via-blue-500 to-cyan-400 transition-all duration-300"
                           style={{ width: `${(filledCount / ASPEK.length) * 100}%` }}
                           role="progressbar"
                           aria-valuenow={filledCount}
@@ -210,7 +242,9 @@ export default function SurveyPage() {
                     <ShimmerButton
                       onClick={handleSubmit}
                       disabled={!isReady || submitting}
-                      className="w-full"
+                      shimmerColor="#bfdbfe"
+                      background="linear-gradient(135deg, rgba(14,165,233,0.98), rgba(37,99,235,0.98))"
+                      className="app-gradient-button w-full border-blue-300/40 shadow-lg shadow-blue-500/25"
                       data-testid="submit-survey"
                       title={
                         !isReady

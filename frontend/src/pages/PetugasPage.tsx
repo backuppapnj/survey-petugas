@@ -185,6 +185,7 @@ export default function PetugasPage() {
           </p>
         </div>
         <Button
+          className="app-gradient-button border border-blue-300/40 bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg shadow-blue-500/20 hover:from-sky-400 hover:to-blue-500"
           onClick={() => {
             setEditTarget(null)
             setFormOpen(true)
@@ -248,7 +249,7 @@ export default function PetugasPage() {
               </TableHeader>
               <TableBody>
                 {paged.map((p) => (
-                  <TableRow key={p.id}>
+                  <TableRow key={p.id} className="transition-colors hover:bg-blue-500/5">
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Avatar className="size-8">
@@ -262,9 +263,13 @@ export default function PetugasPage() {
                     <TableCell>{p.unit_kerja}</TableCell>
                     <TableCell>
                       {p.is_active ? (
-                        <Badge>Aktif</Badge>
+                        <Badge className="border border-blue-500/20 bg-blue-500/15 text-blue-700 dark:text-blue-300">
+                          Aktif
+                        </Badge>
                       ) : (
-                        <Badge variant="secondary">Non-aktif</Badge>
+                        <Badge className="border border-slate-500/20 bg-slate-500/15 text-slate-600 dark:text-slate-300">
+                          Non-aktif
+                        </Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
@@ -390,8 +395,11 @@ function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-12 text-center">
-      <div className="rounded-full bg-muted p-3">
-        <Users className="size-6 text-muted-foreground" aria-hidden />
+      <div
+        data-testid="petugas-empty-icon"
+        className="rounded-full bg-blue-500/10 p-3"
+      >
+        <Users className="size-6 text-blue-600 dark:text-blue-300" aria-hidden />
       </div>
       <div>
         <h2 className="text-base font-semibold">
@@ -408,7 +416,10 @@ function EmptyState({
           Reset filter
         </Button>
       ) : (
-        <Button onClick={onAdd}>
+        <Button
+          className="app-gradient-button border border-blue-300/40 bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg shadow-blue-500/20 hover:from-sky-400 hover:to-blue-500"
+          onClick={onAdd}
+        >
           <Plus className="mr-2 size-4" />
           Tambah Petugas
         </Button>

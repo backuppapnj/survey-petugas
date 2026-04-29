@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/sidebar'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { useAuth } from '@/hooks/useAuth'
+import { cn } from '@/lib/utils'
 
 const menuItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
@@ -45,10 +46,17 @@ export function AdminLayout() {
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarHeader>
+        <SidebarHeader className="border-b border-white/8">
           <div className="flex items-center gap-2 px-2 py-1">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
-              <ShieldCheck className="size-4 text-primary" aria-hidden />
+            <div
+              data-testid="admin-brand-icon"
+              className="flex size-8 items-center justify-center rounded-lg bg-blue-500/20"
+            >
+              <ShieldCheck
+                data-testid="admin-brand-shield"
+                className="size-4 text-blue-400"
+                aria-hidden
+              />
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-sm font-semibold">Survei PTSP</span>
@@ -67,6 +75,12 @@ export function AdminLayout() {
                     <SidebarMenuButton
                       isActive={location.pathname === item.url}
                       onClick={() => navigate(item.url)}
+                      className={cn(
+                        'rounded-l-none border-l-2 transition-colors',
+                        location.pathname === item.url
+                          ? 'border-blue-400 bg-blue-500/10 text-foreground'
+                          : 'border-transparent hover:border-blue-400/35 hover:bg-blue-500/6',
+                      )}
                     >
                       <item.icon className="size-4" />
                       <span>{item.title}</span>
@@ -78,11 +92,17 @@ export function AdminLayout() {
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter>
+        <SidebarFooter className="border-t border-white/8">
           {admin && (
-            <div className="flex items-center gap-2 rounded-md border p-2">
+            <div
+              data-testid="admin-footer-profile"
+              className="flex items-center gap-2 rounded-md border border-white/8 bg-white/4 p-2"
+            >
               <Avatar className="size-8">
-                <AvatarFallback>
+                <AvatarFallback
+                  data-testid="admin-avatar-fallback"
+                  className="bg-blue-500/15 text-blue-400"
+                >
                   {(admin.nama || admin.username).charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -107,7 +127,10 @@ export function AdminLayout() {
       </Sidebar>
 
       <main className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header
+          data-testid="admin-layout-header"
+          className="sticky top-0 z-10 flex items-center gap-3 border-b border-white/8 bg-background/80 px-4 py-3 backdrop-blur-md"
+        >
           <SidebarTrigger />
           <div className="flex-1">
             <h2 className="text-sm font-medium text-muted-foreground">

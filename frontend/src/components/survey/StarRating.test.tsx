@@ -1,5 +1,26 @@
+import React from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('motion/react', () => ({
+  motion: {
+    button: React.forwardRef<
+      HTMLButtonElement,
+      React.ButtonHTMLAttributes<HTMLButtonElement> & { whileTap?: unknown }
+    >(({ whileTap, children, ...props }, ref) => (
+      <button
+        ref={ref}
+        data-motion="button"
+        data-while-tap={JSON.stringify(whileTap)}
+        {...props}
+      >
+        {children}
+      </button>
+    )),
+  },
+}))
+
 import { StarRating } from './StarRating'
 
 describe('StarRating', () => {
@@ -37,5 +58,30 @@ describe('StarRating', () => {
   it('menampilkan deskripsi rating sesuai nilai', () => {
     render(<StarRating value={5} onChange={() => {}} label="Test" />)
     expect(screen.getByText('Sangat Puas')).toBeInTheDocument()
+  })
+
+  it('menggunakan motion.button dengan animasi tap spring', () => {
+    render(<StarRating value={0} onChange={() => {}} label="Test" />)
+    const firstStar = screen.getAllByRole('radio')[0]
+
+    expect(firstStar).toHaveAttribute('data-motion', 'button')
+    expect(firstStar.getAttribute('data-while-tap')).toContain('"scale":0.88')
+    expect(firstStar.getAttribute('data-while-tap')).toContain('"type":"spring"')
+  })
+
+  it('mendukung navigasi keyboard panah pada radio group', async () => {
+    const handleChange = vi.fn()
+    const user = userEvent.setup()
+    render(<StarRating value={2} onChange={handleChange} label="Test" />)
+
+    const activeStar = screen.getByRole('radio', { name: /tidak puas \(2 bintang\)/i })
+    activeStar.focus()
+    expect(activeStar).toHaveFocus()
+
+    await user.keyboard('{ArrowRight}')
+    await user.keyboard('{ArrowLeft}')
+
+    expect(handleChange).toHaveBeenNthCalledWith(1, 3)
+    expect(handleChange).toHaveBeenNthCalledWith(2, 2)
   })
 })

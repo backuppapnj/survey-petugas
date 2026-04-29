@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { ArrowDownAZ, ArrowUpAZ, Search } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
@@ -80,6 +81,7 @@ export function RekapTable({ data, onSelectPetugas }: Props) {
       setSortDir(k === 'nama' ? 'asc' : 'desc')
     }
   }
+  const columnCount = onSelectPetugas ? 9 : 8
 
   // Helper (bukan komponen) supaya tidak melanggar react-hooks/static-components
   const sortHeader = (k: SortKey, label: string, align: 'left' | 'right' = 'left') => (
@@ -102,7 +104,10 @@ export function RekapTable({ data, onSelectPetugas }: Props) {
   )
 
   return (
-    <Card>
+    <Card
+      data-testid="rekap-table-card"
+      className="border border-blue-500/20 shadow-[0_18px_55px_-38px_rgba(37,99,235,0.55)]"
+    >
       <CardHeader>
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
@@ -126,7 +131,10 @@ export function RekapTable({ data, onSelectPetugas }: Props) {
       <CardContent>
         <div className="overflow-x-auto rounded-lg border">
           <Table>
-            <TableHeader>
+            <TableHeader
+              data-testid="rekap-table-header"
+              className="bg-slate-100/80 dark:bg-slate-900/60"
+            >
               <TableRow>
                 <TableHead>{sortHeader('nama', 'Petugas')}</TableHead>
                 <TableHead className="text-right">
@@ -146,12 +154,13 @@ export function RekapTable({ data, onSelectPetugas }: Props) {
                 </TableHead>
                 <TableHead className="text-right">{sortHeader('ikm', 'IKM', 'right')}</TableHead>
                 <TableHead>Mutu</TableHead>
+                {onSelectPetugas && <TableHead className="text-right">Aksi</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={columnCount} className="py-8 text-center text-muted-foreground">
                     {search ? 'Tidak ada petugas cocok.' : 'Belum ada data.'}
                   </TableCell>
                 </TableRow>
@@ -161,8 +170,8 @@ export function RekapTable({ data, onSelectPetugas }: Props) {
                   return (
                     <TableRow
                       key={p.petugas_id}
-                      className={cn(onSelectPetugas && 'cursor-pointer hover:bg-muted/50')}
-                      onClick={() => onSelectPetugas?.(p.petugas_id)}
+                      data-testid={`rekap-row-${p.petugas_id}`}
+                      className="transition-colors hover:bg-blue-500/8"
                     >
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -194,6 +203,19 @@ export function RekapTable({ data, onSelectPetugas }: Props) {
                           {kategori.grade} · {kategori.mutu}
                         </Badge>
                       </TableCell>
+                      {onSelectPetugas && (
+                        <TableCell className="text-right">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onSelectPetugas(p.petugas_id)}
+                            aria-label={`Lihat detail ${p.nama}`}
+                          >
+                            Lihat detail
+                          </Button>
+                        </TableCell>
+                      )}
                     </TableRow>
                   )
                 })

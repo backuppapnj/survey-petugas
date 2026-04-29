@@ -1,10 +1,12 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import css from '../index.css?raw'
 
 // Test verifikasi CSS variable tema biru profesional.
-// Dibaca langsung dari file index.css sebagai string (Vite ?raw loader)
-// karena vitest dikonfigurasi css: false, sehingga getComputedStyle
-// tidak akan melihat variable dari stylesheet.
+// Dibaca langsung dari file index.css sebagai string dari filesystem
+// karena vitest dikonfigurasi css: false, sehingga import stylesheet
+// tidak diproses seperti runtime browser/Vite biasa.
+const css = readFileSync(resolve(process.cwd(), 'src/index.css'), 'utf8')
 
 // Ambil blok :root { ... } pertama saja.
 const rootBlockMatch = css.match(/:root\s*\{([\s\S]*?)\n\}/)

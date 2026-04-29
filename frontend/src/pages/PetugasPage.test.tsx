@@ -60,4 +60,36 @@ describe('PetugasPage', () => {
       expect(screen.getByText(/non-aktif/i)).toBeInTheDocument()
     })
   })
+
+  it('menampilkan aksen biru pada badge aktif dan hover row', async () => {
+    vi.spyOn(apiModule, 'getAdminPetugas').mockResolvedValue(fakePetugas)
+
+    render(
+      <MemoryRouter>
+        <PetugasPage />
+      </MemoryRouter>,
+    )
+
+    const aktifBadge = await screen.findByText('Aktif')
+    expect(aktifBadge).toHaveClass('bg-blue-500/15', 'text-blue-700')
+    expect(screen.getByText('Non-aktif')).toHaveClass('bg-slate-500/15', 'text-slate-600')
+    expect(screen.getByText('Budi').closest('tr')).toHaveClass('hover:bg-blue-500/5')
+  })
+
+  it('menampilkan empty state dan tombol tambah petugas dengan aksen biru', async () => {
+    vi.spyOn(apiModule, 'getAdminPetugas').mockResolvedValue([])
+
+    render(
+      <MemoryRouter>
+        <PetugasPage />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText(/belum ada petugas/i)).toBeInTheDocument()
+    expect(screen.getByTestId('petugas-empty-icon')).toHaveClass('bg-blue-500/10')
+    expect(screen.getAllByRole('button', { name: /tambah petugas/i })[1]).toHaveClass(
+      'from-sky-500',
+      'to-blue-600',
+    )
+  })
 })

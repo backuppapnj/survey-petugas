@@ -9,29 +9,56 @@ interface Props {
 }
 
 const ASPEK = [
-  { key: 'kecepatan', label: 'Kecepatan', color: 'var(--chart-1)' },
-  { key: 'keramahan', label: 'Keramahan', color: 'var(--chart-2)' },
-  { key: 'informasi', label: 'Informasi', color: 'var(--chart-3)' },
-  { key: 'kenyamanan', label: 'Kenyamanan', color: 'var(--chart-4)' },
+  {
+    key: 'kecepatan',
+    label: 'Kecepatan',
+    color: 'var(--chart-1)',
+    gradientFrom: 'rgba(14, 165, 233, 0.95)',
+    gradientTo: 'rgba(37, 99, 235, 0.82)',
+  },
+  {
+    key: 'keramahan',
+    label: 'Keramahan',
+    color: 'var(--chart-2)',
+    gradientFrom: 'rgba(16, 185, 129, 0.95)',
+    gradientTo: 'rgba(13, 148, 136, 0.82)',
+  },
+  {
+    key: 'informasi',
+    label: 'Informasi',
+    color: 'var(--chart-3)',
+    gradientFrom: 'rgba(59, 130, 246, 0.95)',
+    gradientTo: 'rgba(14, 165, 233, 0.82)',
+  },
+  {
+    key: 'kenyamanan',
+    label: 'Kenyamanan',
+    color: 'var(--chart-4)',
+    gradientFrom: 'rgba(45, 212, 191, 0.95)',
+    gradientTo: 'rgba(16, 185, 129, 0.82)',
+  },
 ] as const
 
 export function RatingDistribution({ data }: Props) {
   const stats = useMemo(() => {
-    return ASPEK.map(({ key, label, color }) => {
+    return ASPEK.map(({ key, label, color, gradientFrom, gradientTo }) => {
       const buckets = [0, 0, 0, 0, 0] // index 0 -> bintang 1, dst
       data.forEach((r) => {
         const v = r[key]
         if (v >= 1 && v <= 5) buckets[v - 1] += 1
       })
       const total = buckets.reduce((s, n) => s + n, 0)
-      return { key, label, color, buckets, total }
+      return { key, label, color, gradientFrom, gradientTo, buckets, total }
     })
   }, [data])
 
   const grandTotal = data.length
 
   return (
-    <Card>
+    <Card
+      data-testid="rating-distribution-card"
+      className="border border-blue-500/20 shadow-[0_18px_55px_-38px_rgba(37,99,235,0.55)]"
+    >
       <CardHeader>
         <CardTitle>Distribusi Rating per Aspek</CardTitle>
         <p className="text-xs text-muted-foreground">
@@ -45,7 +72,7 @@ export function RatingDistribution({ data }: Props) {
           </div>
         ) : (
           <div className="space-y-5">
-            {stats.map(({ key, label, color, buckets, total }) => (
+            {stats.map(({ key, label, color, gradientFrom, gradientTo, buckets, total }) => (
               <div key={key} className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="flex items-center gap-2 font-medium">
@@ -87,10 +114,13 @@ export function RatingDistribution({ data }: Props) {
                           aria-label={`${label} bintang ${star}: ${count} respon (${pct.toFixed(1)}%)`}
                         >
                           <div
+                            data-testid={`rating-bar-${key}-${star}`}
                             className="h-full rounded-full transition-all"
                             style={{
                               width: `${pct}%`,
-                              background: isLow ? 'oklch(0.62 0.22 25)' : color,
+                              backgroundImage: isLow
+                                ? 'linear-gradient(90deg, rgba(251, 113, 133, 0.95), rgba(244, 63, 94, 0.82))'
+                                : `linear-gradient(90deg, ${gradientFrom}, ${gradientTo})`,
                             }}
                           />
                         </div>
