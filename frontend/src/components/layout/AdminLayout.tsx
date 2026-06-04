@@ -47,8 +47,8 @@ export function AdminLayout() {
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2 px-2 py-1">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
-              <ShieldCheck className="size-4 text-primary" aria-hidden />
+            <div className="flex size-8 items-center justify-center rounded-lg bg-blue-500/20">
+              <ShieldCheck className="size-4 text-blue-400" aria-hidden />
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-sm font-semibold">Survei PTSP</span>
@@ -67,6 +67,10 @@ export function AdminLayout() {
                     <SidebarMenuButton
                       isActive={location.pathname === item.url}
                       onClick={() => navigate(item.url)}
+                      className={location.pathname === item.url
+                        ? 'bg-blue-500/15 border-l-3 border-blue-500 text-blue-400 font-medium'
+                        : 'border-l-3 border-transparent'
+                      }
                     >
                       <item.icon className="size-4" />
                       <span>{item.title}</span>
@@ -80,9 +84,9 @@ export function AdminLayout() {
 
         <SidebarFooter>
           {admin && (
-            <div className="flex items-center gap-2 rounded-md border p-2">
+            <div className="flex items-center gap-2 rounded-md border border-white/8 p-2">
               <Avatar className="size-8">
-                <AvatarFallback>
+                <AvatarFallback className="bg-blue-600 text-white text-sm font-semibold">
                   {(admin.nama || admin.username).charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -107,7 +111,7 @@ export function AdminLayout() {
       </Sidebar>
 
       <main className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/80 px-4 py-3 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
           <SidebarTrigger />
           <div className="flex-1">
             <h2 className="text-sm font-medium text-muted-foreground">

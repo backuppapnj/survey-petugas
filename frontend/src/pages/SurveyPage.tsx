@@ -9,13 +9,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { BorderBeam } from '@/components/ui/border-beam'
 import { BlurFade } from '@/components/ui/blur-fade'
-import { DotPattern } from '@/components/ui/dot-pattern'
+import { AnimatedGridPattern } from '@/components/ui/animated-grid-pattern'
 import { Confetti, type ConfettiRef } from '@/components/ui/confetti'
 import { ShimmerButton } from '@/components/ui/shimmer-button'
 import { StarRating } from '@/components/survey/StarRating'
 import { getPetugas, submitSurvei } from '@/lib/api'
 import type { Petugas } from '@/types'
-import { cn } from '@/lib/utils'
 
 type Ratings = { kecepatan: number; keramahan: number; informasi: number; kenyamanan: number }
 
@@ -90,13 +89,17 @@ export default function SurveyPage() {
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center bg-background p-4">
-      <DotPattern
-        className={cn('[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]')}
+      <AnimatedGridPattern
+        numSquares={30}
+        maxOpacity={0.1}
+        duration={3}
+        className="absolute inset-0 [mask-image:radial-gradient(500px_circle_at_center,white,transparent)]"
       />
       <Confetti ref={confettiRef} className="pointer-events-none absolute inset-0 z-50" />
 
       <BlurFade delay={0.1}>
-        <Card className="relative w-full max-w-md overflow-hidden">
+        <Card className="relative w-full max-w-md overflow-hidden rounded-2xl border-blue-200/80 shadow-lg shadow-blue-500/8 dark:border-blue-800/40">
+          <div className="h-[3px] w-full bg-gradient-to-r from-blue-500 via-emerald-500 to-blue-500 bg-[length:200%_100%] animate-[shimmer_3s_linear_infinite]" />
           <BorderBeam size={250} duration={12} />
           <CardContent className="space-y-6 p-6">
             {loading ? (
@@ -119,9 +122,11 @@ export default function SurveyPage() {
             ) : (
               <>
                 <div className="flex flex-col items-center gap-3">
-                  <Avatar className="size-24">
+                  <Avatar className="size-24 ring-4 ring-blue-500/20">
                     <AvatarImage src={petugas.foto_url} alt={petugas.nama} />
-                    <AvatarFallback>{petugas.nama.charAt(0)}</AvatarFallback>
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-700 text-white text-2xl font-bold shadow-lg shadow-blue-500/25">
+                      {petugas.nama.charAt(0)}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="text-center">
                     <h1 className="text-xl font-semibold">{petugas.nama}</h1>
@@ -159,9 +164,9 @@ export default function SurveyPage() {
                           {filledCount} / {ASPEK.length} aspek
                         </span>
                       </div>
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                         <div
-                          className="h-full bg-primary transition-all duration-300"
+                          className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all duration-700 ease-out"
                           style={{ width: `${(filledCount / ASPEK.length) * 100}%` }}
                           role="progressbar"
                           aria-valuenow={filledCount}
@@ -211,6 +216,8 @@ export default function SurveyPage() {
                       onClick={handleSubmit}
                       disabled={!isReady || submitting}
                       className="w-full"
+                      background="linear-gradient(to right, #1d4ed8, #3b82f6)"
+                      shimmerColor="#93c5fd"
                       data-testid="submit-survey"
                       title={
                         !isReady

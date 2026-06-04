@@ -17,10 +17,11 @@ interface BarChartCardProps {
 }
 
 const tooltipStyle: React.CSSProperties = {
-  background: 'var(--popover)',
-  border: '1px solid var(--border)',
+  background: 'hsl(222.2,84%,4.9%)',
+  border: '1px solid hsl(215,20%,15%)',
   borderRadius: 8,
-  color: 'var(--popover-foreground)',
+  color: 'hsl(210,40%,96.1%)',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
 }
 
 export function BarChartCard({ data, onSelectPetugas }: BarChartCardProps) {
@@ -34,7 +35,7 @@ export function BarChartCard({ data, onSelectPetugas }: BarChartCardProps) {
   }))
 
   return (
-    <Card>
+    <Card className="border-blue-200/50 dark:border-blue-800/30">
       <CardHeader>
         <CardTitle>Perbandingan per Petugas</CardTitle>
         <p className="text-xs text-muted-foreground">
@@ -54,6 +55,24 @@ export function BarChartCard({ data, onSelectPetugas }: BarChartCardProps) {
               data={chartData}
               margin={{ top: 8, right: 12, left: -8, bottom: 40 }}
             >
+              <defs>
+                <linearGradient id="fillKecepatan" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={1} />
+                  <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0.6} />
+                </linearGradient>
+                <linearGradient id="fillKeramahan" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--chart-2)" stopOpacity={1} />
+                  <stop offset="100%" stopColor="var(--chart-2)" stopOpacity={0.6} />
+                </linearGradient>
+                <linearGradient id="fillInformasi" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--chart-3)" stopOpacity={1} />
+                  <stop offset="100%" stopColor="var(--chart-3)" stopOpacity={0.6} />
+                </linearGradient>
+                <linearGradient id="fillKenyamanan" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--chart-4)" stopOpacity={1} />
+                  <stop offset="100%" stopColor="var(--chart-4)" stopOpacity={0.6} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis
                 dataKey="nama"
@@ -73,11 +92,11 @@ export function BarChartCard({ data, onSelectPetugas }: BarChartCardProps) {
                 contentStyle={tooltipStyle}
                 cursor={{ fill: 'var(--accent)', opacity: 0.3 }}
               />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="Kecepatan" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Keramahan" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Informasi" fill="var(--chart-3)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Kenyamanan" fill="var(--chart-4)" radius={[4, 4, 0, 0]} />
+              <Legend wrapperStyle={{ fontSize: 12, fontWeight: 500 }} />
+              <Bar dataKey="Kecepatan" fill="url(#fillKecepatan)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Keramahan" fill="url(#fillKeramahan)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Informasi" fill="url(#fillInformasi)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Kenyamanan" fill="url(#fillKenyamanan)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}

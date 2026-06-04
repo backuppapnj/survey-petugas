@@ -1,57 +1,60 @@
-import { describe, expect, it } from 'vitest'
-import css from '../index.css?raw'
+import { describe, expect, it, beforeAll } from 'vitest'
 
-// Test verifikasi CSS variable tema biru profesional.
-// Dibaca langsung dari file index.css sebagai string (Vite ?raw loader)
-// karena vitest dikonfigurasi css: false, sehingga getComputedStyle
-// tidak akan melihat variable dari stylesheet.
+// Per redesign plan (Task 2): verify that CSS custom properties for the
+// professional blue government theme are correctly set in :root and .dark.
+// We inject the raw CSS into JSDOM so getComputedStyle can read the vars
+// (vitest css: true + this setup makes it reliable).
 
-// Ambil blok :root { ... } pertama saja.
-const rootBlockMatch = css.match(/:root\s*\{([\s\S]*?)\n\}/)
-const rootBlock = rootBlockMatch ? rootBlockMatch[1] : ''
+import indexCss from '../index.css?raw'
 
-// Ambil blok .dark { ... } pertama.
-const darkBlockMatch = css.match(/\.dark\s*\{([\s\S]*?)\n\}/)
-const darkBlock = darkBlockMatch ? darkBlockMatch[1] : ''
-
-function getVar(block: string, name: string): string {
-  const re = new RegExp(`--${name}\\s*:\\s*([^;]+);`)
-  const m = block.match(re)
-  return m ? m[1].trim() : ''
-}
-
-function parseOklch(value: string): { l: number; c: number; h: number } | null {
-  const m = value.match(/oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)/)
-  if (!m) return null
-  return { l: parseFloat(m[1]), c: parseFloat(m[2]), h: parseFloat(m[3]) }
-}
+beforeAll(() => {
+  // Inject the theme CSS so getComputedStyle(document.documentElement)
+  // can resolve our --primary, --sidebar etc.
+  const styleEl = document.createElement('style')
+  styleEl.textContent = indexCss
+  document.head.appendChild(styleEl)
+})
 
 describe('CSS theme variables', () => {
   it('light mode primary menggunakan hue biru (oklch chroma > 0)', () => {
-    const primary = getVar(rootBlock, 'primary')
-    const parsed = parseOklch(primary)
-    expect(parsed).not.toBeNull()
-    expect(parsed!.c).toBeGreaterThan(0)
+    const style = getComputedStyle(document.documentElement)
+    const primary = style.getPropertyValue('--primary').trim()
+    // oklch(0.45 0.18 255) — chroma 0.18 > 0 berarti ada warna (bukan grayscale)
+    const match = primary.match(/oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)/)
+    expect(match).not.toBeNull()
+    const chroma = parseFloat(match![2])
+    expect(chroma).toBeGreaterThan(0)
   })
 
   it('light mode sidebar menggunakan background gelap', () => {
-    const sidebar = getVar(rootBlock, 'sidebar')
-    const parsed = parseOklch(sidebar)
-    expect(parsed).not.toBeNull()
-    expect(parsed!.l).toBeLessThan(0.3)
+    const style = getComputedStyle(document.documentElement)
+    const sidebar = style.getPropertyValue('--sidebar').trim()
+    const match = sidebar.match(/oklch\(\s*([\d.]+)/)
+    expect(match).not.toBeNull()
+    const lightness = parseFloat(match![1])
+    expect(lightness).toBeLessThan(0.3)
   })
 
   it('light mode sidebar-primary menggunakan hue biru', () => {
-    const sp = getVar(rootBlock, 'sidebar-primary')
-    const parsed = parseOklch(sp)
-    expect(parsed).not.toBeNull()
-    expect(parsed!.c).toBeGreaterThan(0)
+    const style = getComputedStyle(document.documentElement)
+    const sp = style.getPropertyValue('--sidebar-primary').trim()
+    const match = sp.match(/oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)/)
+    expect(match).not.toBeNull()
+    const chroma = parseFloat(match![2])
+    expect(chroma).toBeGreaterThan(0)
   })
 
   it('dark mode primary juga memiliki hue (chroma > 0)', () => {
-    const primary = getVar(darkBlock, 'primary')
-    const parsed = parseOklch(primary)
-    expect(parsed).not.toBeNull()
-    expect(parsed!.c).toBeGreaterThan(0)
+    // In dark mode the :root vars are overridden by .dark block
+    // We check on <html class="dark"> simulation
+    document.documentElement.classList.add('dark')
+    const style = getComputedStyle(document.documentElement)
+    const primary = style.getPropertyValue('--primary').trim()
+    document.documentElement.classList.remove('dark')
+
+    const match = primary.match(/oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)/)
+    expect(match).not.toBeNull()
+    const chroma = parseFloat(match![2])
+    expect(chroma).toBeGreaterThan(0)
   })
 })

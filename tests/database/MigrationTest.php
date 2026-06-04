@@ -55,9 +55,21 @@ final class MigrationTest extends CIUnitTestCase
 
     public function testTabelAdminUsernameUnique(): void
     {
-        $indexes = $this->db->query('SHOW INDEX FROM admin WHERE Key_name = "username"')->getResultArray();
+        // Portable across MySQL / SQLite (used in tests): use CI4 getIndexData()
+        // instead of raw "SHOW INDEX" which is MySQL-only and caused SQLite syntax error.
+        $indexes = $this->db->getIndexData('admin');
 
-        $this->assertNotEmpty($indexes, 'Index unique pada kolom username tidak ditemukan');
-        $this->assertSame(0, (int) $indexes[0]['Non_unique'], 'Kolom username harus UNIQUE');
+        $usernameIndexes = array_filter($indexes, static function ($idx) {
+            return isset($idx->fields) && in_array('username', (array) $idx->fields, true);
+        });
+
+        $this->assertNotEmpty($usernameIndexes, 'Index unik pada kolom username tidak ditemukan');
+
+        $uniqueIdx = array_values($usernameIndexes)[0] ?? null;
+        $this->assertNotNull($uniqueIdx);
+
+        // Portable check: some drivers (MySQL) use $idx->unique bool, SQLite uses $idx->type === 'UNIQUE'
+        $isUnique = !empty($uniqueIdx->unique) || (isset($uniqueIdx->type) && strtoupper((string)$uniqueIdx->type) === 'UNIQUE');
+        $this->assertTrue($isUnique, 'Kolom username harus memiliki unique index');
     }
 }

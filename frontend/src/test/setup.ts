@@ -17,6 +17,14 @@ class MockIntersectionObserver {
 ;(globalThis as unknown as { IntersectionObserver: typeof MockIntersectionObserver }).IntersectionObserver =
   MockIntersectionObserver
 
+// Polyfill ResizeObserver for MagicUI components like AnimatedGridPattern (used in Login/Survey after redesign)
+class MockResizeObserver {
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+}
+;(globalThis as unknown as { ResizeObserver: typeof MockResizeObserver }).ResizeObserver = MockResizeObserver
+
 // Mock Confetti karena jsdom tidak mendukung HTMLCanvasElement.getContext
 // canvas-confetti akan crash saat kita unmount komponen
 vi.mock('@/components/ui/confetti', () => ({
