@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ShineBorder } from '@/components/ui/shine-border'
-import { DotPattern } from '@/components/ui/dot-pattern'
+import { AnimatedGridPattern } from '@/components/ui/animated-grid-pattern'
+import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
 import { useAuth } from '@/hooks/useAuth'
 import type { ApiError } from '@/types'
 import { cn } from '@/lib/utils'
@@ -40,17 +40,24 @@ export default function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center bg-background p-4">
-      <DotPattern
-        className={cn('[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]')}
+      <AnimatedGridPattern
+        numSquares={30}
+        maxOpacity={0.1}
+        duration={3}
+        className="absolute inset-0 [mask-image:radial-gradient(500px_circle_at_center,white,transparent)]"
       />
-      <Card className="relative w-full max-w-sm overflow-hidden">
-        <ShineBorder shineColor={['#A07CFE', '#FE8FB5', '#FFBE7B']} />
+      <Card className="relative w-full max-w-sm overflow-hidden rounded-2xl border-blue-200 shadow-lg shadow-blue-500/10 dark:border-blue-800/40">
+        <div className="h-[3px] w-full bg-gradient-to-r from-blue-500 via-violet-500 to-blue-500 bg-[length:200%_100%] animate-[shimmer_3s_linear_infinite]" />
         <CardHeader className="space-y-3 text-center">
-          <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/10">
-            <ShieldCheck className="size-6 text-primary" aria-hidden />
+          <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-500/30">
+            <ShieldCheck className="size-6 text-white" aria-hidden />
           </div>
           <div>
-            <CardTitle className="text-xl">Survei Kepuasan PTSP</CardTitle>
+            <CardTitle className="text-xl">
+              <AnimatedGradientText className="bg-gradient-to-r from-blue-700 to-blue-500 bg-clip-text text-transparent dark:from-blue-400 dark:to-blue-300">
+                Survei Kepuasan PTSP
+              </AnimatedGradientText>
+            </CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
               Login Administrator
             </p>
@@ -68,6 +75,7 @@ export default function LoginPage() {
                 autoFocus
                 autoComplete="username"
                 placeholder="admin"
+                className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:ring-blue-500/30 focus:border-blue-500"
               />
             </div>
             <div className="space-y-2">
@@ -86,7 +94,7 @@ export default function LoginPage() {
                   }
                   required
                   autoComplete="current-password"
-                  className="pr-10"
+                  className="pr-10 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:ring-blue-500/30 focus:border-blue-500"
                   aria-describedby={capsOn ? 'caps-warning' : undefined}
                 />
                 <button
@@ -109,7 +117,11 @@ export default function LoginPage() {
                 </p>
               )}
             </div>
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-blue-700 to-blue-500 hover:from-blue-800 hover:to-blue-600 shadow-md shadow-blue-500/25 text-white"
+              disabled={submitting}
+            >
               {submitting ? 'Memproses...' : 'Login'}
             </Button>
             <p className="text-center text-xs text-muted-foreground">
