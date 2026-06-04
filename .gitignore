@@ -129,6 +129,8 @@ _modules/*
 # Project Specific
 #-------------------------
 .superpowers/
+.worktrees/
+worktrees/
 frontend/node_modules/
 frontend/dist/
 public/app/
