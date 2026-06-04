@@ -89,7 +89,7 @@ export function SummaryCards({ summary }: { summary: RekapSummary }) {
 
       {/* Baris 2: 4 aspek */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {ASPEK_META.map(({ key, label, color, borderColor, gradientFrom, gradientTo, labelColor }, index) => (
+        {ASPEK_META.map(({ key, label, color, borderColor, labelColor }, index) => (
           <MagicCard
             key={key}
             className={cn('p-4 border-l-3 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 rounded-none rounded-r-xl', borderColor)}

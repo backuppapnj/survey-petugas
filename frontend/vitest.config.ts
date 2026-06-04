@@ -11,6 +11,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    css: false,
+    // Enable CSS so getComputedStyle can read our custom properties (--primary etc)
+    // for theme verification tests (per UI/UX redesign plan).
+    css: true,
   },
 })

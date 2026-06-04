@@ -15,7 +15,6 @@ import { ShimmerButton } from '@/components/ui/shimmer-button'
 import { StarRating } from '@/components/survey/StarRating'
 import { getPetugas, submitSurvei } from '@/lib/api'
 import type { Petugas } from '@/types'
-import { cn } from '@/lib/utils'
 
 type Ratings = { kecepatan: number; keramahan: number; informasi: number; kenyamanan: number }
 

@@ -11,7 +11,6 @@ import { AnimatedGridPattern } from '@/components/ui/animated-grid-pattern'
 import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
 import { useAuth } from '@/hooks/useAuth'
 import type { ApiError } from '@/types'
-import { cn } from '@/lib/utils'
 
 export default function LoginPage() {
   const navigate = useNavigate()
