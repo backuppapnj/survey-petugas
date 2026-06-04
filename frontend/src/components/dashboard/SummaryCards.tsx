@@ -11,11 +11,15 @@ const ASPEK_META: Array<{
   key: 'kecepatan' | 'keramahan' | 'informasi' | 'kenyamanan'
   label: string
   color: string
+  borderColor: string
+  gradientFrom: string
+  gradientTo: string
+  labelColor: string
 }> = [
-  { key: 'kecepatan', label: 'Kecepatan', color: 'var(--chart-1)' },
-  { key: 'keramahan', label: 'Keramahan', color: 'var(--chart-2)' },
-  { key: 'informasi', label: 'Informasi', color: 'var(--chart-3)' },
-  { key: 'kenyamanan', label: 'Kenyamanan', color: 'var(--chart-4)' },
+  { key: 'kecepatan', label: 'Kecepatan', color: 'var(--chart-1)', borderColor: 'border-l-blue-500', gradientFrom: 'from-blue-500', gradientTo: 'to-blue-400', labelColor: 'text-blue-600 dark:text-blue-400' },
+  { key: 'keramahan', label: 'Keramahan', color: 'var(--chart-2)', borderColor: 'border-l-emerald-500', gradientFrom: 'from-emerald-500', gradientTo: 'to-emerald-400', labelColor: 'text-emerald-600 dark:text-emerald-400' },
+  { key: 'informasi', label: 'Informasi', color: 'var(--chart-3)', borderColor: 'border-l-amber-500', gradientFrom: 'from-amber-500', gradientTo: 'to-amber-400', labelColor: 'text-amber-600 dark:text-amber-400' },
+  { key: 'kenyamanan', label: 'Kenyamanan', color: 'var(--chart-4)', borderColor: 'border-l-violet-500', gradientFrom: 'from-violet-500', gradientTo: 'to-violet-400', labelColor: 'text-violet-600 dark:text-violet-400' },
 ]
 
 export function SummaryCards({ summary }: { summary: RekapSummary }) {
@@ -25,7 +29,7 @@ export function SummaryCards({ summary }: { summary: RekapSummary }) {
     <div className="space-y-4">
       {/* Baris 1: Headline metrics */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <MagicCard className="p-6">
+        <MagicCard className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200 p-6 dark:from-blue-950/30 dark:to-blue-900/20 dark:border-blue-800/40 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Total Responden</p>
@@ -42,13 +46,13 @@ export function SummaryCards({ summary }: { summary: RekapSummary }) {
           </div>
         </MagicCard>
 
-        <MagicCard className="p-6">
+        <MagicCard className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-200 p-6 dark:from-emerald-950/30 dark:to-emerald-900/20 dark:border-emerald-800/40 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           <div className="flex items-center gap-4">
             <AnimatedCircularProgressBar
               max={100}
               value={summary.ikm}
               min={0}
-              gaugePrimaryColor="var(--primary)"
+              gaugePrimaryColor="hsl(142,71%,45%)"
               gaugeSecondaryColor="var(--muted)"
               className="size-24 text-base"
             />
@@ -62,7 +66,7 @@ export function SummaryCards({ summary }: { summary: RekapSummary }) {
           </div>
         </MagicCard>
 
-        <MagicCard className={cn('p-6', kategori.bg)}>
+        <MagicCard className={cn('bg-gradient-to-br from-emerald-50 to-green-100/50 border-emerald-200 p-6 dark:from-emerald-950/30 dark:to-green-900/20 dark:border-emerald-800/40 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200', kategori.bg)}>
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Mutu Pelayanan</p>
@@ -85,15 +89,18 @@ export function SummaryCards({ summary }: { summary: RekapSummary }) {
 
       {/* Baris 2: 4 aspek */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {ASPEK_META.map(({ key, label, color }) => (
-          <MagicCard key={key} className="p-4">
+        {ASPEK_META.map(({ key, label, color, borderColor, gradientFrom, gradientTo, labelColor }, index) => (
+          <MagicCard
+            key={key}
+            className={cn('p-4 border-l-3 shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 rounded-none rounded-r-xl', borderColor)}
+          >
             <div className="flex items-center gap-2">
               <span
                 className="inline-block size-2 rounded-full"
                 style={{ background: color }}
                 aria-hidden
               />
-              <p className="text-xs font-medium text-muted-foreground">{label}</p>
+              <p className={cn('text-xs font-semibold', labelColor)}>{label}</p>
             </div>
             <div className="mt-2 flex items-baseline gap-1">
               <p className="text-2xl font-bold tabular-nums">
@@ -103,10 +110,10 @@ export function SummaryCards({ summary }: { summary: RekapSummary }) {
             </div>
             <div className="mt-2 h-1.5 w-full rounded-full bg-muted" aria-hidden>
               <div
-                className="h-full rounded-full transition-all"
+                className="h-full rounded-full bg-gradient-to-r transition-all duration-700 ease-out"
                 style={{
                   width: `${Math.min(100, (summary.rata_rata[key] / 5) * 100)}%`,
-                  background: color,
+                  backgroundImage: `linear-gradient(to right, var(--chart-${index + 1}), color-mix(in oklch, var(--chart-${index + 1}) 70%, white))`,
                 }}
               />
             </div>

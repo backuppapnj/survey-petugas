@@ -88,6 +88,20 @@ describe('DashboardPage', () => {
       expect(screen.getByText(/sangat baik/i)).toBeInTheDocument()
     })
   })
+
+  it('SummaryCards menggunakan gradient biru untuk Total Responden (per redesign)', async () => {
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>,
+    )
+
+    await waitFor(() => screen.getByText(/total responden/i))
+    // The first MagicCard (Total) should have the blue gradient from plan
+    const cards = document.querySelectorAll('[class*="MagicCard"], .rounded-\\[var\\(--radius\\)\\]')
+    // Simpler: check body html contains the class from plan for Total card
+    expect(document.body.innerHTML).toMatch(/from-blue-50/)
+  })
 })
 
 // --- AdminLayout styling tests (from UI/UX redesign plan Task 3) ---
