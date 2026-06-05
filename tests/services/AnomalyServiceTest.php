@@ -164,4 +164,30 @@ final class AnomalyServiceTest extends CIUnitTestCase
         $this->assertSame(10, $report['petugas_outlier']['items'][0]['jumlah']);
         $this->assertSame(5.0, $report['petugas_outlier']['items'][0]['rasio']);
     }
+
+    public function testLaporanKosongTanpaSubmission(): void
+    {
+        // Tanpa petugas & tanpa survei: laporan harus aman/kosong, bukan error.
+        $service = new AnomalyService(null, null, $this->stubQueue(null));
+        $report = $service->analyze('2026-06-01', '2026-06-07');
+
+        $this->assertSame(0, $report['luar_jam']['total']);
+        $this->assertSame([], $report['luar_jam']['items']);
+        $this->assertFalse($report['harian']['antrean_tersedia']);
+        $this->assertSame([], $report['harian']['items']);
+        $this->assertSame(0.0, $report['petugas_outlier']['median']);
+        $this->assertSame([], $report['petugas_outlier']['items']);
+    }
+
+    public function testComputeMedianGanjilDanGenap(): void
+    {
+        $service = new AnomalyService(null, null, $this->stubQueue(null));
+
+        $this->assertSame(0.0, $service->computeMedian([]));
+        $this->assertSame(5.0, $service->computeMedian([5]));
+        $this->assertSame(2.0, $service->computeMedian([1, 2, 3])); // ganjil
+        $this->assertSame(3.0, $service->computeMedian([2, 4]));     // genap -> rata-rata
+        $this->assertSame(2.5, $service->computeMedian([1, 2, 3, 4])); // genap
+        $this->assertSame(2.0, $service->computeMedian([4, 1, 3, 1])); // tidak terurut -> sort dulu
+    }
 }
