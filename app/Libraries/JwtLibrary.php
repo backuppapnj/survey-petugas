@@ -10,9 +10,12 @@ class JwtLibrary
 {
     private string $secretKey;
     private string $algorithm = 'HS256';
-    private int $expiry = 86400; // 24 hours
+    private int $expiry;
 
     private const MIN_KEY_LENGTH = 32; // 256 bits
+
+    /** Prefix cache untuk daftar-cabut (blacklist) berbasis jti. */
+    private const REVOKE_CACHE_PREFIX = 'jwt_revoked_';
 
     public function __construct()
     {
@@ -25,15 +28,17 @@ class JwtLibrary
         }
 
         $this->secretKey = $secret;
+        // Masa berlaku token dapat dikonfigurasi via .env (detik). Default 24 jam.
+        $this->expiry = (int) env('JWT_EXPIRY', 86400);
     }
 
     public function encode(array $payload): string
     {
         $issuedAt = time();
-        $merged = array_merge($payload, [
+        $merged   = array_merge($payload, [
             'iat' => $issuedAt,
             'exp' => $issuedAt + $this->expiry,
-            'jti' => bin2hex(random_bytes(16)), // Unique token ID for revocation
+            'jti' => bin2hex(random_bytes(16)), // ID unik token untuk revocation
         ]);
 
         return JWT::encode($merged, $this->secretKey, $this->algorithm);
@@ -48,7 +53,7 @@ class JwtLibrary
         try {
             return JWT::decode($token, new Key($this->secretKey, $this->algorithm));
         } catch (Throwable $e) {
-            // Log expired tokens for monitoring
+            // Log token kedaluwarsa untuk monitoring
             if ($e instanceof \Firebase\JWT\ExpiredException) {
                 log_message('warning', 'Expired JWT token attempted: ' . $e->getMessage());
             }
@@ -56,21 +61,28 @@ class JwtLibrary
         }
     }
 
-    public function decodeWithExpiry(string $token): ?object
+    /**
+     * Cabut (revoke) token berdasarkan jti hingga waktu kedaluwarsanya.
+     * Entri blacklist disimpan di cache dengan TTL = sisa umur token, sehingga
+     * otomatis terhapus saat token memang sudah kedaluwarsa (hemat penyimpanan).
+     */
+    public function revoke(string $jti, int $expiresAt): void
     {
-        if ($token === '') {
-            return null;
+        if ($jti === '') {
+            return;
         }
 
-        try {
-            $decoded = JWT::decode($token, new Key($this->secretKey, $this->algorithm));
-            return $decoded;
-        } catch (Throwable $e) {
-            // Log expired tokens for monitoring
-            if ($e instanceof \Firebase\JWT\ExpiredException) {
-                log_message('warning', 'Expired JWT token attempted: ' . $e->getMessage());
-            }
-            return null;
+        $ttl = $expiresAt - time();
+        if ($ttl > 0) {
+            cache()->save(self::REVOKE_CACHE_PREFIX . $jti, 1, $ttl);
         }
+    }
+
+    /**
+     * Periksa apakah sebuah jti sudah dicabut (ada di blacklist).
+     */
+    public function isRevoked(string $jti): bool
+    {
+        return $jti !== '' && cache(self::REVOKE_CACHE_PREFIX . $jti) !== null;
     }
 }

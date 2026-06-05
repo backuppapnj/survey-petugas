@@ -58,4 +58,21 @@ class AuthController extends ResourceController
             ],
         ]);
     }
+
+    /**
+     * Logout: cabut token saat ini (revocation berbasis jti).
+     * Endpoint ini berada di belakang JwtFilter, sehingga payload token
+     * sudah tersedia di service jwtAuth. Token yang dicabut akan ditolak
+     * oleh JwtFilter pada request berikutnya hingga token tersebut kedaluwarsa.
+     */
+    public function logout(): ResponseInterface
+    {
+        $payload = service('jwtAuth')->getPayload();
+
+        if ($payload !== null && isset($payload->jti, $payload->exp)) {
+            (new JwtLibrary())->revoke((string) $payload->jti, (int) $payload->exp);
+        }
+
+        return $this->response->setJSON(['message' => 'Logout berhasil']);
+    }
 }
