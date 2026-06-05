@@ -33,6 +33,9 @@ class AnomaliController extends ResourceController
 
     private function isValidDate(string $date): bool
     {
+        // Round-trip: createFromFormat lalu format ulang. Equality memaksa
+        // zero-padding (mis. '2026-6-1' ditolak) DAN menolak tanggal overflow
+        // (mis. '2026-02-30' menjadi '2026-03-02' sehingga tidak sama).
         $d = DateTime::createFromFormat('Y-m-d', $date);
 
         return $d !== false && $d->format('Y-m-d') === $date;
