@@ -150,10 +150,18 @@ class SurveiModel extends Model
      */
     public function getSubmissionsInRange(string $start, string $end): array
     {
-        return $this->select('id, petugas_id, created_at')
+        $rows = $this->select('id, petugas_id, created_at')
             ->where('created_at >=', $start . ' 00:00:00')
             ->where('created_at <=', $end . ' 23:59:59')
             ->orderBy('created_at', 'ASC')
             ->findAll();
+
+        // Normalisasi tipe: Query Builder dapat mengembalikan kolom numerik
+        // sebagai string (tergantung driver), pastikan int agar kontrak akurat.
+        return array_map(static fn (array $row): array => [
+            'id'         => (int) $row['id'],
+            'petugas_id' => (int) $row['petugas_id'],
+            'created_at' => (string) $row['created_at'],
+        ], $rows);
     }
 }
