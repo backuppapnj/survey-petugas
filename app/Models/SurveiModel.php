@@ -23,7 +23,32 @@ class SurveiModel extends Model
         return $data;
     }
 
-    protected $beforeInsert = ['setCreatedAt'];
+    protected $beforeInsert = ['setCreatedAt', 'sanitizeSaran'];
+    protected $beforeUpdate = ['sanitizeSaran'];
+
+    /**
+     * Sanitize saran field to prevent XSS attacks.
+     * Strips HTML tags and encodes special characters.
+     */
+    protected function sanitizeSaran(array $data): array
+    {
+        if (isset($data['data']['saran']) && $data['data']['saran'] !== null) {
+            $saran = $data['data']['saran'];
+
+            // Strip all HTML tags
+            $saran = strip_tags($saran);
+
+            // Trim whitespace
+            $saran = trim($saran);
+
+            // Encode special characters for safe display
+            $saran = htmlspecialchars($saran, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+            $data['data']['saran'] = $saran;
+        }
+
+        return $data;
+    }
 
     /**
      * Hitung rekap survei dalam rentang tanggal.
@@ -31,8 +56,13 @@ class SurveiModel extends Model
      */
     public function getRekapByDateRange(string $start, string $end): array
     {
-        $semua = $this->where('DATE(created_at) >=', $start)
-            ->where('DATE(created_at) <=', $end)
+        // PERFORMA: gunakan rentang DATETIME mentah, bukan DATE(created_at).
+        // Membungkus kolom dengan fungsi DATE() membuat query non-sargable
+        // sehingga index pada created_at tidak terpakai (full table scan).
+        // Rentang [start 00:00:00 .. end 23:59:59] memberi hasil sama namun
+        // tetap memanfaatkan index created_at yang sudah ada.
+        $semua = $this->where('created_at >=', $start . ' 00:00:00')
+            ->where('created_at <=', $end . ' 23:59:59')
             ->orderBy('created_at', 'DESC')
             ->findAll();
 
@@ -106,5 +136,32 @@ class SurveiModel extends Model
             'per_petugas' => $perPetugas,
             'semua'       => $semua,
         ];
+    }
+
+    /**
+     * Ambil submission survei dalam rentang tanggal dengan kolom minimal
+     * (id, petugas_id, created_at) untuk analisis anomali.
+     *
+     * PERFORMA: memakai rentang DATETIME mentah agar tetap sargable
+     * (memanfaatkan index pada created_at), konsisten dengan
+     * getRekapByDateRange().
+     *
+     * @return list<array{id:int, petugas_id:int, created_at:string}>
+     */
+    public function getSubmissionsInRange(string $start, string $end): array
+    {
+        $rows = $this->select('id, petugas_id, created_at')
+            ->where('created_at >=', $start . ' 00:00:00')
+            ->where('created_at <=', $end . ' 23:59:59')
+            ->orderBy('created_at', 'ASC')
+            ->findAll();
+
+        // Normalisasi tipe: Query Builder dapat mengembalikan kolom numerik
+        // sebagai string (tergantung driver), pastikan int agar kontrak akurat.
+        return array_map(static fn (array $row): array => [
+            'id'         => (int) $row['id'],
+            'petugas_id' => (int) $row['petugas_id'],
+            'created_at' => (string) $row['created_at'],
+        ], $rows);
     }
 }

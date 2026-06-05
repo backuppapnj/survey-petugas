@@ -11,7 +11,17 @@ class AuthController extends ResourceController
 {
     public function login(): ResponseInterface
     {
-        $json  = $this->request->getJSON(true) ?? [];
+        // Decode body deterministik: body kosong -> [] (gagal validasi 422),
+        // JSON rusak -> 400 (bukan 500).
+        $raw  = (string) $this->request->getBody();
+        $json = $raw === '' ? [] : json_decode($raw, true);
+        if (! is_array($json)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'status' => 400,
+                'error'  => 'Format JSON tidak valid',
+            ]);
+        }
+
         $rules = [
             'username' => 'required|string',
             'password' => 'required|string',
@@ -47,5 +57,22 @@ class AuthController extends ResourceController
                 'nama'     => $admin['nama'],
             ],
         ]);
+    }
+
+    /**
+     * Logout: cabut token saat ini (revocation berbasis jti).
+     * Endpoint ini berada di belakang JwtFilter, sehingga payload token
+     * sudah tersedia di service jwtAuth. Token yang dicabut akan ditolak
+     * oleh JwtFilter pada request berikutnya hingga token tersebut kedaluwarsa.
+     */
+    public function logout(): ResponseInterface
+    {
+        $payload = service('jwtAuth')->getPayload();
+
+        if ($payload !== null && isset($payload->jti, $payload->exp)) {
+            (new JwtLibrary())->revoke((string) $payload->jti, (int) $payload->exp);
+        }
+
+        return $this->response->setJSON(['message' => 'Logout berhasil']);
     }
 }

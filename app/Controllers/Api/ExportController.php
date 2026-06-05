@@ -5,6 +5,7 @@ namespace App\Controllers\Api;
 use App\Models\SurveiModel;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\RESTful\ResourceController;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -65,7 +66,9 @@ class ExportController extends ResourceController
 
         $row = 2;
         foreach ($perPetugas as $p) {
-            $sheet->setCellValue("A{$row}", $p['nama']);
+            // KEAMANAN: paksa string eksplisit agar nilai diawali '='/'+'/'-'/'@'
+            // tidak ditafsirkan sebagai formula oleh Excel (formula injection).
+            $sheet->setCellValueExplicit("A{$row}", (string) $p['nama'], DataType::TYPE_STRING);
             $sheet->setCellValue("B{$row}", $p['total_responden']);
             $sheet->setCellValue("C{$row}", $p['rata_rata']['kecepatan']);
             $sheet->setCellValue("D{$row}", $p['rata_rata']['keramahan']);
@@ -91,7 +94,10 @@ class ExportController extends ResourceController
             $sheet->setCellValue("D{$row}", $s['keramahan']);
             $sheet->setCellValue("E{$row}", $s['informasi']);
             $sheet->setCellValue("F{$row}", $s['kenyamanan']);
-            $sheet->setCellValue("G{$row}", $s['saran'] ?? '');
+            // KEAMANAN: 'saran' adalah input publik tak tepercaya — paksa string
+            // eksplisit agar tidak dieksekusi sebagai formula saat file dibuka
+            // (cegah CSV/spreadsheet formula injection -> potensi RCE/eksfiltrasi).
+            $sheet->setCellValueExplicit("G{$row}", (string) ($s['saran'] ?? ''), DataType::TYPE_STRING);
             $sheet->setCellValue("H{$row}", $s['created_at']);
             $row++;
         }

@@ -33,7 +33,10 @@ class Database extends Config
         'DBDriver'     => 'MySQLi',
         'DBPrefix'     => '',
         'pConnect'     => false,
-        'DBDebug'      => true,
+        // PRODUKSI: jangan tampilkan detail error database ke pengguna.
+        // development/testing => true (debug), production => false.
+        // Tetap dapat ditimpa via .env (database.default.DBDebug).
+        'DBDebug'      => (ENVIRONMENT !== 'production'),
         'charset'      => 'utf8mb4',
         'DBCollat'     => 'utf8mb4_general_ci',
         'swapPre'      => '',

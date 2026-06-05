@@ -1,0 +1,32 @@
+# ============================================================================
+# Proteksi direktori uploads (defense-in-depth).
+# Berkas di sini disajikan via UploadsController (/api/uploads/{file}), bukan
+# langsung oleh web server. Aturan ini melindungi bila server salah konfigurasi
+# dan mengekspos direktori writable/. Sintaks ditulis kompatibel Apache 2.4 & 2.2.
+# ============================================================================
+
+# Cegah eksekusi skrip di direktori upload
+Options -ExecCGI
+<IfModule mod_mime.c>
+    RemoveHandler .php .php3 .php4 .php5 .php7 .php8 .phtml .pl .py .cgi .asp .aspx .shtml .sh
+    RemoveType .php .php3 .php4 .php5 .php7 .php8 .phtml
+</IfModule>
+
+# Paksa semua berkas diperlakukan sebagai teks biasa (tidak dieksekusi)
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+
+# Cegah directory listing
+Options -Indexes
+
+# Tolak akses langsung ke berkas skrip yang berpotensi berbahaya
+<FilesMatch "\.(php|php3|php4|php5|php7|php8|phtml|pl|py|cgi|asp|aspx|shtml|sh|exe)$">
+    <IfModule authz_core_module>
+        Require all denied
+    </IfModule>
+    <IfModule !authz_core_module>
+        Order Deny,Allow
+        Deny from all
+    </IfModule>
+</FilesMatch>

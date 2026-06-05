@@ -35,6 +35,7 @@ class Filters extends BaseFilters
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
         'jwt'           => \App\Filters\JwtFilter::class,
+        'ratelimit'     => \App\Filters\RateLimitFilter::class,
     ];
 
     /**
@@ -73,13 +74,16 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
-            // 'honeypot',
-            // 'csrf',
-            // 'invalidchars',
+            // CATATAN: CSRF TIDAK diaktifkan secara global. Backend ini adalah API
+            // stateless berbasis JWT Bearer token (header Authorization), bukan
+            // autentikasi berbasis cookie/session. Token Bearer tidak dikirim
+            // otomatis oleh browser, sehingga API ini secara inheren kebal CSRF.
+            // Mengaktifkan CSRF di sini justru memblokir semua POST/PUT/DELETE
+            // (termasuk login) karena klien API tidak mengirim CSRF token.
+            'invalidchars',  // Blokir karakter tidak valid pada input request
         ],
         'after' => [
-            // 'honeypot',
-            // 'secureheaders',
+            'secureheaders', // Aktifkan security headers pada setiap response
         ],
     ];
 
@@ -109,5 +113,8 @@ class Filters extends BaseFilters
      */
     public array $filters = [
         'cors' => ['before' => ['api/*'], 'after' => ['api/*']],
+        // CATATAN: rate limit kini diterapkan per-route dengan label
+        // (lihat Routes.php: 'ratelimit:login' & 'ratelimit:survey') agar
+        // kapasitasnya berbeda per endpoint.
     ];
 }

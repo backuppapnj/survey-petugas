@@ -11,7 +11,18 @@ class SurveiController extends ResourceController
 {
     public function submit(): ResponseInterface
     {
-        $json  = $this->request->getJSON(true) ?? [];
+        // Decode body secara deterministik: body kosong -> [] (gagal validasi
+        // 'required' => 422), JSON rusak -> 400 (bukan 500). Menghindari
+        // ketergantungan pada perilaku getJSON yang dapat melempar exception.
+        $raw  = (string) $this->request->getBody();
+        $json = $raw === '' ? [] : json_decode($raw, true);
+        if (! is_array($json)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'status' => 400,
+                'error'  => 'Format JSON tidak valid',
+            ]);
+        }
+
         $rules = [
             'petugas_id' => 'required|integer',
             'kecepatan'  => 'required|integer|greater_than[0]|less_than[6]',
