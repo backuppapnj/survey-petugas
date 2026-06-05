@@ -1,0 +1,18 @@
+# Prevent direct PHP execution
+<FilesMatch "\.php$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+
+# Prevent script execution
+Options -ExecCGI
+RemoveHandler .php .php3 .php4 .php5 .phtml .pl .py .cgi
+
+# Prevent directory listing
+Options -Indexes
+
+# Only allow image files
+<FilesMatch "^[^.]+\.(jpg|jpeg|png|gif|webp)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>

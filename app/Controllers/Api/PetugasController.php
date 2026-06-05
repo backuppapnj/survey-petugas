@@ -66,9 +66,26 @@ class PetugasController extends ResourceController
             ]);
         }
 
-        $foto     = $this->request->getFile('foto');
-        $filename = Uuid::uuid4()->toString() . '.' . $foto->getExtension();
-        $foto->move(WRITEPATH . 'uploads', $filename);
+        $foto = $this->request->getFile('foto');
+
+        // Gunakan validasi enhanced untuk keamanan
+        $validation = $this->validateSecureUpload($foto);
+        if (!$validation['valid']) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'status' => 422,
+                'error'  => $validation['error'],
+            ]);
+        }
+
+        $filename = $validation['filename'];
+
+        // Pastikan direktori uploads ada
+        $uploadDir = WRITEPATH . 'uploads';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        $foto->move($uploadDir, $filename);
 
         $id = $this->petugasModel->insert([
             'nama'       => (string) $this->request->getPost('nama'),
@@ -114,7 +131,17 @@ class PetugasController extends ResourceController
                     'messages' => $this->validator->getErrors(),
                 ]);
             }
-            $filename = Uuid::uuid4()->toString() . '.' . $foto->getExtension();
+
+            // Gunakan validasi enhanced untuk keamanan
+            $validation = $this->validateSecureUpload($foto);
+            if (!$validation['valid']) {
+                return $this->response->setStatusCode(422)->setJSON([
+                    'status' => 422,
+                    'error'  => $validation['error'],
+                ]);
+            }
+
+            $filename = $validation['filename'];
             $foto->move(WRITEPATH . 'uploads', $filename);
             $data['foto'] = $filename;
         }
@@ -187,5 +214,66 @@ class PetugasController extends ResourceController
             $out['is_active'] = (int) $petugas['is_active'];
         }
         return $out;
+    }
+
+    /**
+     * Validasi file upload dengan keamanan enhanced.
+     * Melakukan verifikasi MIME type, dimensi gambar, dan pencegahan polyglot attack.
+     *
+     * @param \CodeIgniter\HTTP\UploadedFile $file File yang diupload
+     * @return array ['valid' => bool, 'error' => string|null, 'filename' => string|null]
+     */
+    private function validateSecureUpload(\CodeIgniter\HTTP\UploadedFile $file): array
+    {
+        // Cek apakah file benar-benar diupload
+        if (!$file || !$file->isValid()) {
+            return [
+                'valid' => false,
+                'error' => 'File tidak valid atau gagal diupload',
+                'filename' => null,
+            ];
+        }
+
+        // Verifikasi MIME type actual menggunakan finfo (bukan hanya extension)
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->file($file->getTempName());
+
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!in_array($mimeType, $allowedMimes, true)) {
+            return [
+                'valid' => false,
+                'error' => 'Tipe file tidak diizinkan. Hanya JPG, PNG, GIF, atau WebP.',
+                'filename' => null,
+            ];
+        }
+
+        // Cek dimensi gambar (mencegah polyglot attacks - gambar dengan PHP embedded)
+        $imageInfo = @getimagesize($file->getTempName());
+        if ($imageInfo === false) {
+            return [
+                'valid' => false,
+                'error' => 'File bukan gambar yang valid',
+                'filename' => null,
+            ];
+        }
+
+        // Verifikasi tipe gambar
+        if (!in_array($imageInfo[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP])) {
+            return [
+                'valid' => false,
+                'error' => 'Format gambar tidak didukung',
+                'filename' => null,
+            ];
+        }
+
+        // Generate random filename untuk mencegah enumeration dan timing attacks
+        $extension = strtolower($file->getExtension());
+        $filename = bin2hex(random_bytes(16)) . '.' . $extension;
+
+        return [
+            'valid' => true,
+            'error' => null,
+            'filename' => $filename,
+        ];
     }
 }
