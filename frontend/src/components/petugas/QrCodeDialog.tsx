@@ -25,7 +25,12 @@ export function QrCodeDialog({ open, onOpenChange, petugas }: Props) {
 
   if (!petugas) return null
 
-  const surveyUrl = `${window.location.origin}/survey/${petugas.id}`
+  // Sertakan base path aplikasi (import.meta.env.BASE_URL). Di produksi SPA
+  // dilayani dari "/app/" oleh CodeIgniter dan React Router memakai basename
+  // "/app", sehingga URL survei HARUS berprefiks /app. Tanpa ini, QR mengarah
+  // ke "/survey/:id" yang tidak punya route di backend → 404. BASE_URL selalu
+  // diakhiri slash (Vite menjamin), jadi tidak ada risiko slash ganda.
+  const surveyUrl = `${window.location.origin}${import.meta.env.BASE_URL}survey/${petugas.id}`
 
   const handleDownload = () => {
     const canvas = containerRef.current?.querySelector('canvas')
