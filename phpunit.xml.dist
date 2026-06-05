@@ -48,6 +48,8 @@
         <env name="JWT_SECRET_KEY" value="testing-jwt-secret-key-minimum-32-characters-long"/>
         <!-- Encryption key untuk testing DataEncryption (hex2bin: prefix, 64 hex char = 32 byte) -->
         <env name="encryption.key" value="hex2bin:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"/>
+        <!-- Kapasitas rate limit survei kecil saat testing agar uji throttle cepat -->
+        <env name="RATELIMIT_SURVEY" value="3"/>
         <!-- Directory containing phpunit.xml -->
         <const name="HOMEPATH" value="./"/>
         <!-- Directory containing the Paths config file -->

@@ -91,10 +91,41 @@ final class RateLimitFilterTest extends CIUnitTestCase
 
     public function testEndpointNonAuthTidakDibatasi(): void
     {
-        // Endpoint publik non-auth tidak boleh kena rate limit
+        // Endpoint publik non-auth (tanpa filter ratelimit) tidak boleh dibatasi
         for ($i = 1; $i <= 8; $i++) {
             $result = $this->call('get', '/api/petugas/1');
             $this->assertNotSame(429, $result->getStatusCode());
         }
+    }
+
+    /**
+     * Kirim satu submit survei valid untuk petugas aktif (id 1, dari seeder).
+     */
+    private function submitSurvey()
+    {
+        $payload = json_encode([
+            'petugas_id' => 1,
+            'kecepatan'  => 5,
+            'keramahan'  => 5,
+            'informasi'  => 5,
+            'kenyamanan' => 5,
+        ]);
+
+        return $this->withBody($payload)
+            ->withHeaders(['Content-Type' => 'application/json'])
+            ->call('post', '/api/survei');
+    }
+
+    public function testSurveiDibatasiSetelahMelewatiKapasitas(): void
+    {
+        // phpunit env menyetel RATELIMIT_SURVEY=3, jadi 3 submit pertama lolos,
+        // submit ke-4 harus diblokir 429 (proteksi anti-flooding survei).
+        for ($i = 1; $i <= 3; $i++) {
+            $result = $this->submitSurvey();
+            $this->assertNotSame(429, $result->getStatusCode(), "Submit ke-$i seharusnya lolos");
+        }
+
+        $result = $this->submitSurvey();
+        $result->assertStatus(429);
     }
 }

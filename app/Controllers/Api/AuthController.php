@@ -11,7 +11,17 @@ class AuthController extends ResourceController
 {
     public function login(): ResponseInterface
     {
-        $json  = $this->request->getJSON(true) ?? [];
+        // Decode body deterministik: body kosong -> [] (gagal validasi 422),
+        // JSON rusak -> 400 (bukan 500).
+        $raw  = (string) $this->request->getBody();
+        $json = $raw === '' ? [] : json_decode($raw, true);
+        if (! is_array($json)) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'status' => 400,
+                'error'  => 'Format JSON tidak valid',
+            ]);
+        }
+
         $rules = [
             'username' => 'required|string',
             'password' => 'required|string',

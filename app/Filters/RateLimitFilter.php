@@ -7,41 +7,37 @@ use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 
 /**
- * Rate limiting filter untuk mencegah brute force pada endpoint autentikasi.
+ * Rate limiting filter berbasis Throttler bawaan CodeIgniter (Token Bucket,
+ * cache-backed, atomik, kompatibel shared hosting).
  *
- * Menggunakan Throttler bawaan CodeIgniter (algoritma Token Bucket berbasis
- * Cache). Pendekatan ini:
- * - Atomik & bebas race condition (tidak seperti read-modify-write file manual).
- * - Kompatibel shared hosting (default cache handler = file).
- * - Mudah diuji dan idiomatik CI4.
+ * Profil kapasitas dipilih lewat argumen filter (label), mis. di Routes:
+ *   ['filter' => 'ratelimit:login']   -> ketat (anti brute-force)
+ *   ['filter' => 'ratelimit:survey']  -> longgar (anti-bot, ramah kiosk)
+ *
+ * Kapasitas tiap profil dapat ditimpa via .env (RATELIMIT_LOGIN/SURVEY/DEFAULT).
  */
 class RateLimitFilter implements FilterInterface
 {
-    /**
-     * Kapasitas token bucket: maksimal 5 percobaan yang terisi penuh
-     * dalam 1 menit (rata-rata 1 token per 12 detik).
-     */
-    private const CAPACITY = 5;
-
     public function before(RequestInterface $request, $arguments = null)
     {
+        $label    = (is_array($arguments) && isset($arguments[0])) ? $arguments[0] : 'global';
+        $capacity = $this->capacityFor($label);
+
         $throttler = service('throttler');
 
-        // Kunci berbasis alamat IP. CodeIgniter::getIPAddress() hanya
-        // mempercayai header proxy (X-Forwarded-For/X-Real-IP) bila
-        // Config\App::$proxyIPs dikonfigurasi secara eksplisit, sehingga
-        // aman terhadap IP spoofing pada konfigurasi default.
-        $key = 'auth_login_' . md5($request->getIPAddress());
+        // Kunci per-IP + label. CodeIgniter::getIPAddress() hanya mempercayai
+        // header proxy bila App::$proxyIPs dikonfigurasi, sehingga aman dari
+        // IP spoofing pada konfigurasi default.
+        $key = 'rl_' . $label . '_' . md5($request->getIPAddress());
 
-        if ($throttler->check($key, self::CAPACITY, MINUTE) === false) {
-            // Minimal 1 detik sesuai perilaku getTokenTime().
+        if ($throttler->check($key, $capacity, MINUTE) === false) {
             $retryAfter = max(1, $throttler->getTokenTime());
 
             return service('response')
                 ->setStatusCode(429)
                 ->setJSON([
                     'status' => 429,
-                    'error'  => 'Terlalu banyak percobaan login. Silakan coba lagi dalam ' . $retryAfter . ' detik.',
+                    'error'  => 'Terlalu banyak permintaan. Silakan coba lagi dalam ' . $retryAfter . ' detik.',
                 ])
                 ->setHeader('Retry-After', (string) $retryAfter);
         }
@@ -50,5 +46,20 @@ class RateLimitFilter implements FilterInterface
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
         // Tidak ada operasi setelah response.
+    }
+
+    /**
+     * Kapasitas (jumlah aksi per menit) untuk tiap profil rate limit.
+     * - login : ketat, mencegah brute-force kredensial.
+     * - survey: longgar, mencegah flooding otomatis namun ramah kiosk/IP bersama
+     *           (banyak responden sah dari jaringan kantor yang sama).
+     */
+    private function capacityFor(string $label): int
+    {
+        return match ($label) {
+            'login'  => (int) env('RATELIMIT_LOGIN', 5),
+            'survey' => (int) env('RATELIMIT_SURVEY', 30),
+            default  => (int) env('RATELIMIT_DEFAULT', 60),
+        };
     }
 }

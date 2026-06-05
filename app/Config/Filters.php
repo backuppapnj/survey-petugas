@@ -113,6 +113,8 @@ class Filters extends BaseFilters
      */
     public array $filters = [
         'cors' => ['before' => ['api/*'], 'after' => ['api/*']],
-        'ratelimit' => ['before' => ['api/login']],
+        // CATATAN: rate limit kini diterapkan per-route dengan label
+        // (lihat Routes.php: 'ratelimit:login' & 'ratelimit:survey') agar
+        // kapasitasnya berbeda per endpoint.
     ];
 }

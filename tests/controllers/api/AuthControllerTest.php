@@ -52,4 +52,14 @@ final class AuthControllerTest extends CIUnitTestCase
 
         $result->assertStatus(422);
     }
+
+    public function testLoginDenganJsonRusakMengembalikan400(): void
+    {
+        // JSON rusak harus 400 (bad request), bukan 500.
+        $result = $this->withBody('{bad json')
+            ->withHeaders(['Content-Type' => 'application/json'])
+            ->call('post', '/api/login');
+
+        $result->assertStatus(400);
+    }
 }
