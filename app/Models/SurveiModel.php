@@ -137,4 +137,23 @@ class SurveiModel extends Model
             'semua'       => $semua,
         ];
     }
+
+    /**
+     * Ambil submission survei dalam rentang tanggal dengan kolom minimal
+     * (id, petugas_id, created_at) untuk analisis anomali.
+     *
+     * PERFORMA: memakai rentang DATETIME mentah agar tetap sargable
+     * (memanfaatkan index pada created_at), konsisten dengan
+     * getRekapByDateRange().
+     *
+     * @return list<array{id:int, petugas_id:int, created_at:string}>
+     */
+    public function getSubmissionsInRange(string $start, string $end): array
+    {
+        return $this->select('id, petugas_id, created_at')
+            ->where('created_at >=', $start . ' 00:00:00')
+            ->where('created_at <=', $end . ' 23:59:59')
+            ->orderBy('created_at', 'ASC')
+            ->findAll();
+    }
 }
