@@ -25,10 +25,10 @@ class SurveiController extends ResourceController
 
         $rules = [
             'petugas_id' => 'required|integer',
-            'kecepatan'  => 'required|integer|greater_than[0]|less_than[6]',
-            'keramahan'  => 'required|integer|greater_than[0]|less_than[6]',
-            'informasi'  => 'required|integer|greater_than[0]|less_than[6]',
-            'kenyamanan' => 'required|integer|greater_than[0]|less_than[6]',
+            'kecepatan'  => 'required|integer|greater_than[0]|less_than[5]',
+            'keramahan'  => 'required|integer|greater_than[0]|less_than[5]',
+            'informasi'  => 'required|integer|greater_than[0]|less_than[5]',
+            'kenyamanan' => 'required|integer|greater_than[0]|less_than[5]',
             'saran'      => 'permit_empty|string|max_length[1000]',
         ];
 
