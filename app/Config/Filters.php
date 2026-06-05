@@ -74,11 +74,16 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
-            'csrf',          // Enable CSRF protection for all POST/PUT/DELETE
-            'invalidchars',  // Block invalid characters in requests
+            // CATATAN: CSRF TIDAK diaktifkan secara global. Backend ini adalah API
+            // stateless berbasis JWT Bearer token (header Authorization), bukan
+            // autentikasi berbasis cookie/session. Token Bearer tidak dikirim
+            // otomatis oleh browser, sehingga API ini secara inheren kebal CSRF.
+            // Mengaktifkan CSRF di sini justru memblokir semua POST/PUT/DELETE
+            // (termasuk login) karena klien API tidak mengirim CSRF token.
+            'invalidchars',  // Blokir karakter tidak valid pada input request
         ],
         'after' => [
-            'secureheaders', // Enable security headers
+            'secureheaders', // Aktifkan security headers pada setiap response
         ],
     ];
 

@@ -64,9 +64,11 @@ class Cors extends BaseConfig
         $origins = env('CORS_ALLOWED_ORIGINS', '');
 
         if (empty($origins)) {
-            // Default to empty array - must be configured in production
-            // In development, you can add your local URL
-            if (ENVIRONMENT === 'development') {
+            // Default kosong di production — WAJIB dikonfigurasi via
+            // CORS_ALLOWED_ORIGINS di .env. Pada environment development dan
+            // testing, sediakan origin localhost default agar dev server dan
+            // test suite (CorsFilterTest) berfungsi tanpa konfigurasi tambahan.
+            if (ENVIRONMENT === 'development' || ENVIRONMENT === 'testing') {
                 return ['http://localhost:5173', 'http://localhost:3000'];
             }
             return [];
