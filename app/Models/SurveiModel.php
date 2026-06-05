@@ -90,8 +90,8 @@ class SurveiModel extends Model
         }
 
         // IKM dihitung sesuai PermenPAN-RB 14/2017 (skala 25..100) lewat helper
-        // (di-autoload via Config\Autoload::$helpers), bukan konversi linier
-        // rata/5*100 (skala 20..100) yang keliru.
+        // (di-autoload via Config\Autoload::$helpers). Skala penilaian 1..4 =
+        // NRR langsung, jadi IKM = rata-rata unsur * 25 tanpa konversi.
         $ikm = hitung_ikm(
             $rataRata['kecepatan'],
             $rataRata['keramahan'],

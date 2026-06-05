@@ -33,11 +33,10 @@ final class SurveiModelTest extends CIUnitTestCase
     public function testGetRekapByDateRangeMenghitungIKMDenganBenar(): void
     {
         $model = new SurveiModel();
-        $now   = date('Y-m-d H:i:s');
 
-        // Insert 2 survei untuk petugas 1, semua bintang 5 → IKM 100
-        $model->insert(['petugas_id' => 1, 'kecepatan' => 5, 'keramahan' => 5, 'informasi' => 5, 'kenyamanan' => 5, 'saran' => null]);
-        $model->insert(['petugas_id' => 1, 'kecepatan' => 5, 'keramahan' => 5, 'informasi' => 5, 'kenyamanan' => 5, 'saran' => null]);
+        // 2 survei petugas 1, semua "Sangat Baik" (4) -> IKM 100
+        $model->insert(['petugas_id' => 1, 'kecepatan' => 4, 'keramahan' => 4, 'informasi' => 4, 'kenyamanan' => 4, 'saran' => null]);
+        $model->insert(['petugas_id' => 1, 'kecepatan' => 4, 'keramahan' => 4, 'informasi' => 4, 'kenyamanan' => 4, 'saran' => null]);
 
         $today = date('Y-m-d');
         $rekap = $model->getRekapByDateRange($today, $today);
@@ -53,27 +52,23 @@ final class SurveiModelTest extends CIUnitTestCase
     {
         $model = new SurveiModel();
 
-        // Petugas 1: bintang 4 untuk semua aspek
-        $model->insert(['petugas_id' => 1, 'kecepatan' => 4, 'keramahan' => 4, 'informasi' => 4, 'kenyamanan' => 4]);
-        // Petugas 2: bintang 5 untuk semua aspek
-        $model->insert(['petugas_id' => 2, 'kecepatan' => 5, 'keramahan' => 5, 'informasi' => 5, 'kenyamanan' => 5]);
+        // Petugas 1: semua "Baik" (3); Petugas 2: semua "Sangat Baik" (4)
+        $model->insert(['petugas_id' => 1, 'kecepatan' => 3, 'keramahan' => 3, 'informasi' => 3, 'kenyamanan' => 3]);
+        $model->insert(['petugas_id' => 2, 'kecepatan' => 4, 'keramahan' => 4, 'informasi' => 4, 'kenyamanan' => 4]);
 
         $today = date('Y-m-d');
         $rekap = $model->getRekapByDateRange($today, $today);
 
         $this->assertSame(2, $rekap['summary']['total_responden']);
-        // Rata-rata semua unsur = (4+5)/2 = 4.5.
-        // PermenPAN-RB 14/2017: NRR = ((4.5-1)/4)*3+1 = 3.625; IKM = 3.625 * 25 = 90.63
-        $this->assertSame(90.63, (float) $rekap['summary']['ikm']);
+        // Rata-rata semua unsur = (3+4)/2 = 3.5 -> IKM 3.5 * 25 = 87.5
+        $this->assertSame(87.5, (float) $rekap['summary']['ikm']);
     }
 
     public function testGetRekapByDateRangeMenghitungIKMSesuaiPermenPANRB(): void
     {
         $model = new SurveiModel();
 
-        // Seluruh unsur dinilai bintang 1 (terendah). Rumus PermenPAN-RB
-        // memberi batas bawah Nilai IKM = 25, BUKAN 20 seperti konversi
-        // linier lama (rata/5*100). Inilah inti perbaikan inkonsistensi.
+        // Seluruh unsur "Tidak Baik" (1) -> IKM 1 * 25 = 25 (batas bawah)
         $model->insert(['petugas_id' => 1, 'kecepatan' => 1, 'keramahan' => 1, 'informasi' => 1, 'kenyamanan' => 1]);
 
         $today = date('Y-m-d');
