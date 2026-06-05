@@ -23,7 +23,32 @@ class SurveiModel extends Model
         return $data;
     }
 
-    protected $beforeInsert = ['setCreatedAt'];
+    protected $beforeInsert = ['setCreatedAt', 'sanitizeSaran'];
+    protected $beforeUpdate = ['sanitizeSaran'];
+
+    /**
+     * Sanitize saran field to prevent XSS attacks.
+     * Strips HTML tags and encodes special characters.
+     */
+    protected function sanitizeSaran(array $data): array
+    {
+        if (isset($data['data']['saran']) && $data['data']['saran'] !== null) {
+            $saran = $data['data']['saran'];
+
+            // Strip all HTML tags
+            $saran = strip_tags($saran);
+
+            // Trim whitespace
+            $saran = trim($saran);
+
+            // Encode special characters for safe display
+            $saran = htmlspecialchars($saran, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+            $data['data']['saran'] = $saran;
+        }
+
+        return $data;
+    }
 
     /**
      * Hitung rekap survei dalam rentang tanggal.
