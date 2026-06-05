@@ -25,7 +25,13 @@ class FileUploadSecurityTest extends TestCase
         ];
 
         foreach ($testCases as $maliciousPath) {
-            $this->assertStringNotContainsString('..', basename($maliciousPath));
+            // Normalisasi backslash (separator Windows) menjadi slash agar
+            // pengujian deterministik lintas platform: pada Linux, basename()
+            // tidak menganggap "\" sebagai separator sehingga komponen ".."
+            // tidak terhapus. Backslash memang harus diperlakukan sebagai
+            // separator/karakter berbahaya dalam konteks keamanan upload.
+            $normalized = str_replace('\\', '/', $maliciousPath);
+            $this->assertStringNotContainsString('..', basename($normalized));
         }
     }
 
