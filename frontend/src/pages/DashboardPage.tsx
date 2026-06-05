@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Bell, FileText, RefreshCw } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { AlertTriangle, Bell, FileText, RefreshCw } from 'lucide-react'
+import { motion } from 'motion/react'
 import { toast } from 'sonner'
+import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
 import { BlurFade } from '@/components/ui/blur-fade'
 import { Button } from '@/components/ui/button'
+import { GridPattern } from '@/components/ui/grid-pattern'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { IkmLegend, SummaryCards } from '@/components/dashboard/SummaryCards'
@@ -43,36 +46,61 @@ export default function DashboardPage() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [detailId, setDetailId] = useState<number | null>(null)
   const [printOpen, setPrintOpen] = useState<boolean>(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [loadedRangeKey, setLoadedRangeKey] = useState<string | null>(null)
+  const latestRequestRef = useRef(0)
+  const activeRangeKey = `${start}:${end}`
+  const hasValidDateRange = Boolean(start && end && start <= end)
 
   const fetchData = useCallback(
     async (showSpinner = true) => {
+      if (!hasValidDateRange) {
+        if (showSpinner) setLoading(false)
+        else setRefreshing(false)
+        return
+      }
+
+      const requestId = ++latestRequestRef.current
+      const requestedRangeKey = activeRangeKey
+
       if (showSpinner) setLoading(true)
       else setRefreshing(true)
       try {
         const [r, list] = await Promise.all([getRekap(start, end), getAdminPetugas()])
+        if (requestId !== latestRequestRef.current) return
+
         setRekap(r)
         setPetugasList(list)
+        setLoadedRangeKey(requestedRangeKey)
         setLastUpdated(new Date())
+        setLoadError(null)
       } catch {
+        if (requestId !== latestRequestRef.current) return
+
+        setLoadError('Gagal memuat dashboard. Periksa koneksi atau server, lalu coba lagi.')
         toast.error('Gagal memuat data rekap')
       } finally {
+        if (requestId !== latestRequestRef.current) return
+
         setLoading(false)
         setRefreshing(false)
       }
     },
-    [start, end],
+    [activeRangeKey, end, hasValidDateRange, start],
   )
 
   useEffect(() => {
+    if (!hasValidDateRange) return
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData(true)
-  }, [fetchData])
+  }, [fetchData, hasValidDateRange])
 
   // P3-24: polling ringan tiap 60 detik untuk menangkap data baru
   useEffect(() => {
+    if (!hasValidDateRange) return
     const id = setInterval(() => fetchData(false), 60_000)
     return () => clearInterval(id)
-  }, [fetchData])
+  }, [fetchData, hasValidDateRange])
 
   // P3-22: opsi unit kerja diturunkan dari daftar petugas
   const unitOptions = useMemo(() => {
@@ -83,7 +111,7 @@ export default function DashboardPage() {
 
   // Filter rekap by unit kerja jika dipilih
   const filteredRekap = useMemo<RekapResponse | null>(() => {
-    if (!rekap) return null
+    if (!rekap || loadedRangeKey !== activeRangeKey) return null
     if (unitKerja === ALL_UNIT) return rekap
 
     const idsInUnit = new Set(
@@ -116,14 +144,17 @@ export default function DashboardPage() {
       per_petugas,
       semua,
     }
-  }, [rekap, unitKerja, petugasList])
+  }, [activeRangeKey, loadedRangeKey, rekap, unitKerja, petugasList])
 
   const handleExport = async () => {
     setExporting(true)
     try {
-      const url = getExportUrl(start, end)
+      const exportUrl = new URL(getExportUrl(start, end), window.location.origin)
+      if (unitKerja !== ALL_UNIT) {
+        exportUrl.searchParams.set('unit_kerja', unitKerja)
+      }
       const token = localStorage.getItem('token')
-      const response = await fetch(url, {
+      const response = await fetch(exportUrl.toString(), {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
       if (!response.ok) throw new Error('Export gagal')
@@ -155,40 +186,63 @@ export default function DashboardPage() {
   const summary = filteredRekap?.summary
   const kategori = summary ? categorizeIkm(summary.ikm) : null
   const semua: SurveiRecord[] = filteredRekap?.semua ?? []
+  const hasVisibleSummary = Boolean(filteredRekap && summary)
+  const visibleSummary = hasVisibleSummary ? summary : null
+  const visibleRekap = hasVisibleSummary ? filteredRekap : null
 
   return (
     <div className="space-y-6">
       <BlurFade delay={0.05}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Dashboard IKM</h1>
-            <p className="text-sm text-muted-foreground">
-              Indeks Kepuasan Masyarakat — Survei Pelayanan Terpadu Satu Pintu
-              {lastUpdated && (
-                <>
-                  {' · '}
-                  <span title={lastUpdated.toLocaleString('id-ID')}>
-                    Diperbarui {lastUpdated.toLocaleTimeString('id-ID')}
-                  </span>
-                </>
-              )}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => fetchData(false)}
-              disabled={refreshing}
-              title="Muat ulang data"
-            >
-              <RefreshCw className={refreshing ? 'size-4 animate-spin' : 'size-4'} />
-              <span className="sr-only">Muat ulang</span>
-            </Button>
-            <Button variant="outline" size="sm" onClick={handlePrintPDF}>
-              <FileText className="mr-2 size-4" />
-              Cetak PDF
-            </Button>
+        <div
+          data-testid="dashboard-hero"
+          className="relative overflow-hidden rounded-[28px] border border-blue-500/20 bg-gradient-to-br from-sky-500/10 via-background to-emerald-500/10 p-5 shadow-[0_20px_60px_-36px_rgba(14,165,233,0.55)]"
+        >
+          <GridPattern
+            width={56}
+            height={56}
+            strokeDasharray="4 2"
+            className="opacity-35 [mask-image:radial-gradient(circle_at_top,white,transparent_78%)]"
+          />
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">
+                <AnimatedGradientText
+                  data-testid="dashboard-title-gradient"
+                  className="from-sky-400 to-emerald-400"
+                  colorFrom="#38bdf8"
+                  colorTo="#34d399"
+                >
+                  Dashboard IKM
+                </AnimatedGradientText>
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Indeks Kepuasan Masyarakat — Survei Pelayanan Terpadu Satu Pintu
+                {lastUpdated && (
+                  <>
+                    {' · '}
+                    <span title={lastUpdated.toLocaleString('id-ID')}>
+                      Diperbarui {lastUpdated.toLocaleTimeString('id-ID')}
+                    </span>
+                  </>
+                )}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => fetchData(false)}
+                disabled={refreshing}
+                title="Muat ulang data"
+              >
+                <RefreshCw className={refreshing ? 'size-4 animate-spin' : 'size-4'} />
+                <span className="sr-only">Muat ulang</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={handlePrintPDF}>
+                <FileText className="mr-2 size-4" />
+                Cetak PDF
+              </Button>
+            </div>
           </div>
         </div>
       </BlurFade>
@@ -205,7 +259,37 @@ export default function DashboardPage() {
         unitOptions={unitOptions}
       />
 
-      {loading || !filteredRekap || !summary ? (
+      {loading ? (
+        <div className="space-y-4">
+          <Skeleton className="h-32 w-full" />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Skeleton className="h-72" />
+            <Skeleton className="h-72" />
+          </div>
+          <Skeleton className="h-64 w-full" />
+        </div>
+      ) : loadError && !hasVisibleSummary ? (
+        <div
+          role="alert"
+          className="flex flex-col items-start gap-4 rounded-3xl border border-rose-200 bg-rose-50/80 p-6 shadow-sm dark:border-rose-900/40 dark:bg-rose-950/20"
+        >
+          <div className="flex items-start gap-3">
+            <AlertTriangle
+              className="mt-0.5 size-5 text-rose-600 dark:text-rose-400"
+              aria-hidden
+            />
+            <div className="space-y-1">
+              <h2 className="text-base font-semibold text-rose-700 dark:text-rose-300">
+                Gagal memuat dashboard
+              </h2>
+              <p className="text-sm text-rose-700/85 dark:text-rose-300/85">{loadError}</p>
+            </div>
+          </div>
+          <Button onClick={() => fetchData(true)} disabled={loading}>
+            Coba lagi
+          </Button>
+        </div>
+      ) : !hasVisibleSummary ? (
         <div className="space-y-4">
           <Skeleton className="h-32 w-full" />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -216,9 +300,29 @@ export default function DashboardPage() {
         </div>
       ) : (
         <>
-          <BlurFade delay={0.1}>
-            <SummaryCards summary={summary} />
-          </BlurFade>
+          {loadError && (
+            <div
+              role="alert"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm dark:border-amber-900/40 dark:bg-amber-950/20"
+            >
+              <div className="flex items-start gap-2">
+                <AlertTriangle
+                  className="mt-0.5 size-4 text-amber-600 dark:text-amber-400"
+                  aria-hidden
+                />
+                <span>{loadError}</span>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => fetchData(true)}>
+                Coba lagi
+              </Button>
+            </div>
+          )}
+
+          {visibleSummary && (
+            <BlurFade delay={0.1}>
+              <SummaryCards summary={visibleSummary} />
+            </BlurFade>
+          )}
 
           <BlurFade delay={0.12}>
             <IkmLegend />
@@ -237,30 +341,59 @@ export default function DashboardPage() {
               <TabsTrigger value="detail">Tabel Detail</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="overview" className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <BlurFade delay={0.15}>
-                  <RadarChartCard rataRata={summary.rata_rata} />
-                </BlurFade>
-                <BlurFade delay={0.2}>
-                  <BarChartCard
-                    data={filteredRekap.per_petugas}
-                    onSelectPetugas={setDetailId}
-                  />
-                </BlurFade>
-              </div>
+            <TabsContent value="overview">
+              <motion.div
+                data-testid="dashboard-tab-panel-overview"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, ease: 'easeOut' }}
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  <BlurFade delay={0.15}>
+                    <RadarChartCard rataRata={visibleSummary!.rata_rata} />
+                  </BlurFade>
+                  <BlurFade delay={0.2}>
+                    <BarChartCard
+                      data={visibleRekap!.per_petugas}
+                      onSelectPetugas={setDetailId}
+                    />
+                  </BlurFade>
+                </div>
+              </motion.div>
             </TabsContent>
 
             <TabsContent value="distribusi">
-              <RatingDistribution data={semua} />
+              <motion.div
+                data-testid="dashboard-tab-panel-distribusi"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, ease: 'easeOut' }}
+              >
+                <RatingDistribution data={semua} />
+              </motion.div>
             </TabsContent>
 
             <TabsContent value="saran">
-              <SaranList data={semua} petugas={petugasList} />
+              <motion.div
+                data-testid="dashboard-tab-panel-saran"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, ease: 'easeOut' }}
+              >
+                <SaranList data={semua} petugas={petugasList} />
+              </motion.div>
             </TabsContent>
 
             <TabsContent value="detail">
-              <RekapTable data={filteredRekap.per_petugas} onSelectPetugas={setDetailId} />
+              <motion.div
+                data-testid="dashboard-tab-panel-detail"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, ease: 'easeOut' }}
+              >
+                <RekapTable data={visibleRekap!.per_petugas} onSelectPetugas={setDetailId} />
+              </motion.div>
             </TabsContent>
           </Tabs>
 
@@ -270,7 +403,7 @@ export default function DashboardPage() {
               start={start}
               end={end}
               unitKerja={unitKerja === ALL_UNIT ? 'Semua Unit Kerja' : unitKerja}
-              rekap={filteredRekap}
+              rekap={visibleRekap!}
             />
           )}
         </>

@@ -103,7 +103,7 @@ export function DateFilter({
     return s === start && e === end
   })?.key
 
-  const invalid = start > end
+  const invalid = !start || !end || start > end
 
   const applyPreset = (key: string) => {
     const preset = PRESETS.find((p) => p.key === key)
@@ -116,7 +116,10 @@ export function DateFilter({
   const reset = () => applyPreset('30d')
 
   return (
-    <div className="space-y-3 rounded-lg border bg-card p-4">
+    <div
+      data-testid="date-filter-card"
+      className="space-y-3 rounded-2xl border border-blue-500/20 bg-card p-4 shadow-[0_16px_48px_-34px_rgba(37,99,235,0.45)]"
+    >
       {/* Preset chips */}
       <div className="flex flex-wrap gap-2">
         {PRESETS.map((p) => (
@@ -126,6 +129,11 @@ export function DateFilter({
             size="sm"
             variant={activePreset === p.key ? 'default' : 'outline'}
             onClick={() => applyPreset(p.key)}
+            className={cn(
+              activePreset === p.key
+                ? 'border-blue-500 bg-blue-600 text-white hover:bg-blue-700'
+                : 'border-blue-500/15 hover:bg-blue-500/5',
+            )}
           >
             {p.label}
           </Button>

@@ -21,7 +21,10 @@ export function RadarChartCard({ rataRata }: { rataRata: RataRata }) {
   const isEmpty = data.every((d) => d.nilai === 0)
 
   return (
-    <Card>
+    <Card
+      data-testid="radar-chart-card"
+      className="border border-blue-500/20 shadow-[0_18px_55px_-38px_rgba(37,99,235,0.55)]"
+    >
       <CardHeader>
         <CardTitle>Profil Rata-rata Aspek</CardTitle>
         <p className="text-xs text-muted-foreground">
@@ -46,18 +49,19 @@ export function RadarChartCard({ rataRata }: { rataRata: RataRata }) {
               />
               <Tooltip
                 contentStyle={{
-                  background: 'var(--popover)',
-                  border: '1px solid var(--border)',
+                  background: '#0f172a',
+                  border: '1px solid rgba(148, 163, 184, 0.2)',
                   borderRadius: 8,
-                  color: 'var(--popover-foreground)',
+                  color: '#e2e8f0',
+                  boxShadow: '0 20px 45px -28px rgba(15, 23, 42, 0.9)',
                 }}
                 formatter={(v) => [Number(v ?? 0).toFixed(2), 'Skor']}
               />
               <Radar
                 name="Rata-rata"
                 dataKey="nilai"
-                stroke="var(--primary)"
-                fill="var(--primary)"
+                stroke="hsl(142,71%,45%)"
+                fill="hsl(142,71%,45%)"
                 fillOpacity={0.35}
               />
             </RadarChart>

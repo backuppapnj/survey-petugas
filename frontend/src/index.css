@@ -209,7 +209,12 @@ p {
   body {
     @apply bg-background text-foreground;}
   html {
-    @apply font-sans;}}
+    @apply font-sans;}
+  .app-gradient-button {
+    transition-duration: 150ms;
+    transition-property: transform;}
+  .app-gradient-button:active {
+    transform: scale(0.97);}}
 
 @media print {
   @page {
