@@ -52,6 +52,14 @@ final class DataEncryptionTest extends CIUnitTestCase
         $this->assertSame('', $this->encrypter->decrypt(''));
     }
 
+    public function testNilaiNolBukanDianggapKosong(): void
+    {
+        // '0' adalah data valid (PHP empty() keliru menganggapnya kosong).
+        $encrypted = $this->encrypter->encrypt('0');
+        $this->assertNotSame('', $encrypted);
+        $this->assertSame('0', $this->encrypter->decrypt($encrypted));
+    }
+
     public function testKarakterSpesialDanUnicode(): void
     {
         $special   = 'Saran: pelayanan "ramah" & cepat 🎉 <tetap aman>';
@@ -60,10 +68,11 @@ final class DataEncryptionTest extends CIUnitTestCase
         $this->assertSame($special, $this->encrypter->decrypt($encrypted));
     }
 
-    public function testDecryptInputInvalidMengembalikanStringKosong(): void
+    public function testDecryptInputInvalidMengembalikanNull(): void
     {
-        // Base64/ciphertext tidak valid tidak boleh melempar exception
-        $this->assertSame('', $this->encrypter->decrypt('bukan-base64-valid!@#'));
+        // Base64/ciphertext tidak valid tidak boleh melempar exception, dan
+        // harus mengembalikan null (bukan '') agar kegagalan/tampering eksplisit.
+        $this->assertNull($this->encrypter->decrypt('bukan-base64-valid!@#'));
     }
 
     public function testHashKonsistenDan64Karakter(): void

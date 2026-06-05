@@ -3,17 +3,21 @@
 namespace App\Libraries;
 
 use CodeIgniter\Config\Services;
+use RuntimeException;
+use Throwable;
 
 /**
  * Data Encryption Library
  *
- * Provides field-level encryption for sensitive data using CodeIgniter's
- * encryption service with AES-256-CTR.
+ * Enkripsi field-level untuk data sensitif menggunakan encryption service
+ * bawaan CodeIgniter (OpenSSL AES-256-CTR). Driver OpenSSL dipilih daripada
+ * Sodium demi kompatibilitas shared hosting (ekstensi libsodium tidak selalu
+ * tersedia, sedangkan OpenSSL hampir universal).
  *
- * Usage:
- * $encrypter = new DataEncryption();
- * $encrypted = $encrypter->encrypt('sensitive data');
- * $decrypted = $encrypter->decrypt($encrypted);
+ * Contoh:
+ *   $crypto    = new DataEncryption();
+ *   $encrypted = $crypto->encrypt('data sensitif');   // string
+ *   $plain     = $crypto->decrypt($encrypted);         // string|null (null bila gagal)
  */
 class DataEncryption
 {
@@ -23,79 +27,96 @@ class DataEncryption
     private $encrypter;
 
     /**
-     * Initialize the encryption service.
+     * Kunci rahasia untuk HMAC (hashing yang dapat dicari namun irreversible).
      */
+    private string $hmacKey;
+
     public function __construct()
     {
         $this->encrypter = Services::encrypter();
+
+        // HMAC key diturunkan dari encryption key yang WAJIB sudah dikonfigurasi.
+        // Jika kosong, tolak beroperasi (fail-closed) alih-alih memakai '' diam-diam.
+        $key = (string) env('encryption.key', '');
+        if ($key === '') {
+            throw new RuntimeException(
+                'encryption.key belum dikonfigurasi. Set di .env (mis.: php spark key:generate).'
+            );
+        }
+        $this->hmacKey = $key;
     }
 
     /**
-     * Encrypt sensitive field data before database storage.
+     * Enkripsi data sensitif sebelum disimpan ke database.
      *
-     * @param string $data Plain text data to encrypt
-     * @return string Encrypted data (base64 encoded)
+     * @param string $data Teks asli yang akan dienkripsi
+     * @return string Ciphertext (base64). String kosong untuk input kosong.
      */
     public function encrypt(string $data): string
     {
-        if (empty($data)) {
+        // Gunakan perbandingan ketat: '0' adalah data valid, bukan "kosong".
+        if ($data === '') {
             return '';
         }
 
-        $encrypted = $this->encrypter->encrypt($data);
-        return base64_encode($encrypted);
+        return base64_encode($this->encrypter->encrypt($data));
     }
 
     /**
-     * Decrypt field data retrieved from database.
+     * Dekripsi data dari database.
      *
-     * @param string $encryptedData Base64 encoded encrypted data
-     * @return string Decrypted plain text
+     * @param string $encryptedData Ciphertext base64 dari encrypt()
+     * @return string|null Teks asli; '' bila input kosong; null bila dekripsi
+     *                     gagal (base64 rusak / tampering / kunci salah).
      */
-    public function decrypt(string $encryptedData): string
+    public function decrypt(string $encryptedData): ?string
     {
-        if (empty($encryptedData)) {
+        if ($encryptedData === '') {
             return '';
+        }
+
+        $decoded = base64_decode($encryptedData, true);
+        if ($decoded === false) {
+            // Input bukan base64 valid — sinyalkan kegagalan, jangan samarkan jadi ''.
+            return null;
         }
 
         try {
-            $decoded = base64_decode($encryptedData, true);
-            if ($decoded === false) {
-                return '';
-            }
             return $this->encrypter->decrypt($decoded);
-        } catch (\Throwable $e) {
-            log_message('error', 'Decryption failed: ' . $e->getMessage());
-            return '';
+        } catch (Throwable $e) {
+            // Kegagalan autentikasi/dekripsi (mis. data dimanipulasi) dicatat
+            // dan dikembalikan sebagai null agar pemanggil menangani eksplisit.
+            log_message('error', 'Dekripsi gagal: ' . $e->getMessage());
+            return null;
         }
     }
 
     /**
-     * Hash sensitive data that should never be decrypted (e.g., for search/indexing).
-     * Uses SHA-256 with application salt.
+     * Hash data sensitif yang tidak perlu didekripsi namun bisa dicari
+     * (mis. untuk indexing/deduplikasi). Menggunakan HMAC-SHA256 berkunci
+     * (bukan SHA-256 polos) sehingga tahan terhadap serangan rainbow table.
      *
-     * @param string $data Plain text data to hash
-     * @return string Hashed data (hex encoded)
+     * @param string $data Teks asli
+     * @return string HMAC-SHA256 (64 karakter hex). '' untuk input kosong.
      */
     public function hash(string $data): string
     {
-        if (empty($data)) {
+        if ($data === '') {
             return '';
         }
 
-        $salt = env('APP_SALT', '');
-        return hash('sha256', $data . $salt);
+        return hash_hmac('sha256', $data, $this->hmacKey);
     }
 
     /**
-     * Verify that a hash matches the data.
+     * Verifikasi sebuah hash cocok dengan data, secara constant-time.
      *
-     * @param string $data Plain text data
-     * @param string $hash Expected hash
-     * @return bool True if hash matches
+     * @param string $data Teks asli
+     * @param string $hash Hash yang diharapkan
+     * @return bool True bila cocok
      */
     public function verifyHash(string $data, string $hash): bool
     {
-        return hash_equals($hash, $this->hash($data));
+        return hash_equals($this->hash($data), $hash);
     }
 }
