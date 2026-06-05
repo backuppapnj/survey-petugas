@@ -20,12 +20,20 @@ class JwtFilter implements FilterInterface
         }
 
         $token   = substr($authHeader, 7);
-        $decoded = (new JwtLibrary())->decode($token);
+        $jwt     = new JwtLibrary();
+        $decoded = $jwt->decode($token);
 
         if ($decoded === null) {
             return service('response')
                 ->setStatusCode(401)
                 ->setJSON(['status' => 401, 'error' => 'Token tidak valid atau sudah kadaluarsa']);
+        }
+
+        // Tolak token yang sudah dicabut (mis. setelah logout / revocation).
+        if (isset($decoded->jti) && $jwt->isRevoked((string) $decoded->jti)) {
+            return service('response')
+                ->setStatusCode(401)
+                ->setJSON(['status' => 401, 'error' => 'Token sudah dicabut, silakan login kembali']);
         }
 
         // Simpan payload ke service singleton agar bisa diakses controller

@@ -70,6 +70,22 @@ const fakePetugas = [
   },
 ]
 
+const fakeAnomali = {
+  range: { start: '2026-04-01', end: '2026-04-29' },
+  luar_jam: {
+    total: 1,
+    items: [{ petugas_id: 1, nama: 'Budi', created_at: '2026-04-29 07:00:00' }],
+  },
+  harian: {
+    antrean_tersedia: true,
+    items: [{ date: '2026-04-29', survei: 5, dilayani: 2, anomali: true }],
+  },
+  petugas_outlier: {
+    median: 2,
+    items: [{ petugas_id: 1, nama: 'Budi', jumlah: 8, rasio: 4 }],
+  },
+}
+
 const createDeferred = <T,>() => {
   let resolve!: (value: T) => void
   let reject!: (reason?: unknown) => void
@@ -130,6 +146,7 @@ const setPointerCapturePolyfill = () => {
 const setupMocks = () => {
   vi.spyOn(apiModule, 'getRekap').mockResolvedValue(fakeRekap)
   vi.spyOn(apiModule, 'getAdminPetugas').mockResolvedValue(fakePetugas)
+  vi.spyOn(apiModule, 'getAnomali').mockResolvedValue(fakeAnomali)
 }
 
 describe('DashboardPage', () => {
@@ -459,5 +476,22 @@ describe('DashboardPage', () => {
     await user.click(screen.getByRole('button', { name: /lihat detail budi/i }))
 
     expect(onSelectPetugas).toHaveBeenCalledWith(1)
+  })
+
+  it('menampilkan tab Anomali dengan ringkasan sinyal', async () => {
+    const user = (await import('@testing-library/user-event')).default.setup()
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>,
+    )
+
+    await waitFor(() => screen.getByRole('tab', { name: /anomali/i }))
+    await user.click(screen.getByRole('tab', { name: /anomali/i }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('anomali-luar-jam-total')).toHaveTextContent('1')
+    })
+    expect(screen.getByTestId('anomali-outlier-total')).toHaveTextContent('1')
   })
 })

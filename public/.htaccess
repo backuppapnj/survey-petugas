@@ -1,6 +1,73 @@
 # Disable directory browsing
 Options -Indexes
 
+# ============================================================================
+# KEAMANAN: Paksa HTTPS
+# ----------------------------------------------------------------------------
+# Mengarahkan semua request HTTP ke HTTPS. Pengecekan X-Forwarded-Proto
+# mencegah redirect loop pada shared hosting yang berada di belakang
+# load balancer/proxy SSL-terminating.
+# Jika SSL belum aktif dan menyebabkan masalah, nonaktifkan blok ini sementara.
+# ============================================================================
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# ============================================================================
+# KEAMANAN: Security Headers
+# ----------------------------------------------------------------------------
+# 'Header always set' menimpa header yang dikirim PHP sehingga tidak ada
+# duplikasi, dan berlaku juga untuk file statis (SPA) serta response error.
+# ============================================================================
+<IfModule mod_headers.c>
+    # Cegah MIME-sniffing
+    Header always set X-Content-Type-Options "nosniff"
+    # Cegah clickjacking
+    Header always set X-Frame-Options "SAMEORIGIN"
+    # Batasi informasi referrer yang bocor ke situs lain
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    # Nonaktifkan fitur browser sensitif yang tidak dipakai
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()"
+    # HSTS: paksa HTTPS selama 1 tahun (hanya dikirim via koneksi HTTPS)
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" "expr=%{HTTPS} == 'on'"
+    # Content Security Policy untuk SPA React + API satu origin.
+    # script-src 'self' (bundel Vite ter-hash). style 'unsafe-inline' diperlukan
+    # oleh Tailwind/Radix. Sesuaikan bila menambah sumber daya eksternal (CDN/font).
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+    # Sembunyikan teknologi backend
+    Header always unset X-Powered-By
+    Header unset X-Powered-By
+</IfModule>
+
+# ============================================================================
+# KEAMANAN: Lindungi file sensitif
+# ----------------------------------------------------------------------------
+# Blokir akses langsung ke dotfiles (.env, .git, dll) dan file cadangan.
+# (Di CI4, .env berada di root project—di luar public—namun ini lapisan ekstra.)
+# ============================================================================
+<FilesMatch "^\.">
+    <IfModule authz_core_module>
+        Require all denied
+    </IfModule>
+    <IfModule !authz_core_module>
+        Deny from all
+    </IfModule>
+</FilesMatch>
+<FilesMatch "\.(env|bak|config|fla|inc|ini|log|psd|sh|sql|swp|dist)$">
+    <IfModule authz_core_module>
+        Require all denied
+    </IfModule>
+    <IfModule !authz_core_module>
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Sembunyikan signature server
+ServerSignature Off
+
 <IfModule mod_rewrite.c>
     Options +FollowSymlinks
     RewriteEngine On

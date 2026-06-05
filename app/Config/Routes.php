@@ -21,12 +21,17 @@ $routes->options('api/(:any)', static function () {
 });
 
 $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function ($routes) {
-    $routes->post('login', 'AuthController::login');
+    $routes->post('login', 'AuthController::login', ['filter' => 'ratelimit:login']);
     $routes->get('petugas/(:num)', 'PetugasController::show/$1');
-    $routes->post('survei', 'SurveiController::submit');
+    // Rate limit longgar (ramah kiosk/IP bersama) untuk mencegah flooding
+    // survei otomatis tanpa memblokir antrean pengisi sah di kantor.
+    $routes->post('survei', 'SurveiController::submit', ['filter' => 'ratelimit:survey']);
     $routes->get('uploads/(:any)', 'UploadsController::show/$1');
 
     $routes->group('admin', ['filter' => 'jwt'], static function ($routes) {
+        // Logout = cabut token saat ini (revocation). Harus di balik JwtFilter
+        // agar payload token (jti, exp) tersedia untuk dimasukkan ke blacklist.
+        $routes->post('logout', 'AuthController::logout');
         $routes->get('petugas', 'PetugasController::index');
         $routes->post('petugas', 'PetugasController::create');
         $routes->put('petugas/(:num)', 'PetugasController::update/$1');
@@ -34,5 +39,6 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function ($
         $routes->post('petugas/(:num)/restore', 'PetugasController::restore/$1');
         $routes->get('survei/rekap', 'SurveiController::rekap');
         $routes->get('survei/export', 'ExportController::excel');
+        $routes->get('anomali', 'AnomaliController::index');
     });
 });

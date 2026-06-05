@@ -75,3 +75,30 @@ export interface ApiError {
   error: string
   messages?: Record<string, string>
 }
+
+export interface AnomaliLuarJamItem {
+  petugas_id: number
+  nama: string
+  created_at: string
+}
+
+export interface AnomaliHarianItem {
+  date: string
+  survei: number
+  dilayani: number
+  anomali: boolean
+}
+
+export interface AnomaliOutlierItem {
+  petugas_id: number
+  nama: string
+  jumlah: number
+  rasio: number
+}
+
+export interface AnomaliResponse {
+  range: { start: string; end: string }
+  luar_jam: { total: number; items: AnomaliLuarJamItem[] }
+  harian: { antrean_tersedia: boolean; items: AnomaliHarianItem[] }
+  petugas_outlier: { median: number; items: AnomaliOutlierItem[] }
+}
