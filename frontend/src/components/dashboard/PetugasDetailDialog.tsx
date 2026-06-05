@@ -142,6 +142,9 @@ export function PetugasDetailDialog({
               <ul className="divide-y">
                 {records.map((r) => {
                   const avg = (r.kecepatan + r.keramahan + r.informasi + r.kenyamanan) / 4
+                  // Tandai merah bila rata-rata di bawah "Baik" (< 3) pada skala 1..4.
+                  // Sengaja berbeda dari banner saran global (DashboardPage) yang
+                  // memakai ambang < 2.5 untuk peringatan tingkat unit.
                   const low = avg < 3
                   return (
                     <li key={r.id} className="p-3 text-sm">
