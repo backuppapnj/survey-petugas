@@ -35,6 +35,7 @@ class Filters extends BaseFilters
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
         'jwt'           => \App\Filters\JwtFilter::class,
+        'ratelimit'     => \App\Filters\RateLimitFilter::class,
     ];
 
     /**
@@ -73,13 +74,11 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
-            // 'honeypot',
-            // 'csrf',
-            // 'invalidchars',
+            'csrf',          // Enable CSRF protection for all POST/PUT/DELETE
+            'invalidchars',  // Block invalid characters in requests
         ],
         'after' => [
-            // 'honeypot',
-            // 'secureheaders',
+            'secureheaders', // Enable security headers
         ],
     ];
 
@@ -109,5 +108,6 @@ class Filters extends BaseFilters
      */
     public array $filters = [
         'cors' => ['before' => ['api/*'], 'after' => ['api/*']],
+        'ratelimit' => ['before' => ['api/login']],
     ];
 }
