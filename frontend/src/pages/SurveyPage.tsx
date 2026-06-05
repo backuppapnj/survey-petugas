@@ -12,18 +12,20 @@ import { BorderBeam } from '@/components/ui/border-beam'
 import { BlurFade } from '@/components/ui/blur-fade'
 import { Confetti, type ConfettiRef } from '@/components/ui/confetti'
 import { ShimmerButton } from '@/components/ui/shimmer-button'
-import { StarRating } from '@/components/survey/StarRating'
+import { RatingScale } from '@/components/survey/RatingScale'
+import { UNSUR_LABEL } from '@/lib/ikm'
 import { getPetugas, submitSurvei } from '@/lib/api'
 import type { Petugas } from '@/types'
 import { cn } from '@/lib/utils'
 
 type Ratings = { kecepatan: number; keramahan: number; informasi: number; kenyamanan: number }
 
+// Label unsur resmi PermenPAN-RB 14/2017 diambil dari UNSUR_LABEL agar konsisten
 const ASPEK: Array<{ key: keyof Ratings; label: string }> = [
-  { key: 'kecepatan', label: 'Kecepatan' },
-  { key: 'keramahan', label: 'Keramahan' },
-  { key: 'informasi', label: 'Informasi' },
-  { key: 'kenyamanan', label: 'Kenyamanan' },
+  { key: 'kecepatan', label: UNSUR_LABEL.kecepatan },
+  { key: 'keramahan', label: UNSUR_LABEL.keramahan },
+  { key: 'informasi', label: UNSUR_LABEL.informasi },
+  { key: 'kenyamanan', label: UNSUR_LABEL.kenyamanan },
 ]
 
 const SARAN_MAX = 1000
@@ -205,7 +207,7 @@ export default function SurveyPage() {
 
                     <div className="space-y-4">
                       {ASPEK.map(({ key, label }) => (
-                        <StarRating
+                        <RatingScale
                           key={key}
                           label={label}
                           value={ratings[key]}
