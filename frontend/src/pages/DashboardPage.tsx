@@ -465,7 +465,7 @@ function LowRatingBanner({ records }: { records: SurveiRecord[] }) {
   const lowSaran = records.filter((r) => {
     if (!r.saran || r.saran.trim().length === 0) return false
     const avg = (r.kecepatan + r.keramahan + r.informasi + r.kenyamanan) / 4
-    return avg < 3
+    return avg < 2.5
   })
   if (lowSaran.length === 0) return null
 
@@ -474,7 +474,7 @@ function LowRatingBanner({ records }: { records: SurveiRecord[] }) {
       <Bell className="mt-0.5 size-4 text-rose-600 dark:text-rose-400" aria-hidden />
       <div>
         <p className="font-medium text-rose-700 dark:text-rose-300">
-          {lowSaran.length} saran berasal dari rating sangat rendah (&lt;3 bintang)
+          {lowSaran.length} saran berasal dari rating rendah (rata-rata &lt; 2,5 dari 4)
         </p>
         <p className="text-xs text-rose-700/80 dark:text-rose-300/80">
           Buka tab <strong>Saran</strong> untuk meninjau dan menindaklanjuti.

@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
-import { Star } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
+import { NILAI_PERSEPSI, UNSUR_LABEL } from '@/lib/ikm'
 import type { SurveiRecord } from '@/types'
 
 interface Props {
@@ -11,28 +10,28 @@ interface Props {
 const ASPEK = [
   {
     key: 'kecepatan',
-    label: 'Kecepatan',
+    label: UNSUR_LABEL.kecepatan,
     color: 'var(--chart-1)',
     gradientFrom: 'rgba(14, 165, 233, 0.95)',
     gradientTo: 'rgba(37, 99, 235, 0.82)',
   },
   {
     key: 'keramahan',
-    label: 'Keramahan',
+    label: UNSUR_LABEL.keramahan,
     color: 'var(--chart-2)',
     gradientFrom: 'rgba(16, 185, 129, 0.95)',
     gradientTo: 'rgba(13, 148, 136, 0.82)',
   },
   {
     key: 'informasi',
-    label: 'Informasi',
+    label: UNSUR_LABEL.informasi,
     color: 'var(--chart-3)',
     gradientFrom: 'rgba(59, 130, 246, 0.95)',
     gradientTo: 'rgba(14, 165, 233, 0.82)',
   },
   {
     key: 'kenyamanan',
-    label: 'Kenyamanan',
+    label: UNSUR_LABEL.kenyamanan,
     color: 'var(--chart-4)',
     gradientFrom: 'rgba(45, 212, 191, 0.95)',
     gradientTo: 'rgba(16, 185, 129, 0.82)',
@@ -42,10 +41,10 @@ const ASPEK = [
 export function RatingDistribution({ data }: Props) {
   const stats = useMemo(() => {
     return ASPEK.map(({ key, label, color, gradientFrom, gradientTo }) => {
-      const buckets = [0, 0, 0, 0, 0] // index 0 -> bintang 1, dst
+      const buckets = [0, 0, 0, 0] // index 0 -> nilai 1 (Tidak Baik), dst
       data.forEach((r) => {
         const v = r[key]
-        if (v >= 1 && v <= 5) buckets[v - 1] += 1
+        if (v >= 1 && v <= 4) buckets[v - 1] += 1
       })
       const total = buckets.reduce((s, n) => s + n, 0)
       return { key, label, color, gradientFrom, gradientTo, buckets, total }
@@ -62,7 +61,7 @@ export function RatingDistribution({ data }: Props) {
       <CardHeader>
         <CardTitle>Distribusi Rating per Aspek</CardTitle>
         <p className="text-xs text-muted-foreground">
-          Berapa banyak responden memberi 1–5 bintang per aspek ({grandTotal} responden).
+          Berapa banyak responden memberi nilai 1–4 (Tidak Baik s/d Sangat Baik) per aspek ({grandTotal} responden).
         </p>
       </CardHeader>
       <CardContent>
@@ -96,14 +95,7 @@ export function RatingDistribution({ data }: Props) {
                         className="contents"
                       >
                         <span className="flex items-center gap-1 tabular-nums text-muted-foreground">
-                          <Star
-                            className={cn(
-                              'size-3',
-                              isLow ? 'fill-rose-400 text-rose-400' : 'fill-yellow-400 text-yellow-400',
-                            )}
-                            aria-hidden
-                          />
-                          {star}
+                          {star}. {NILAI_PERSEPSI[i].label}
                         </span>
                         <div
                           className="h-2 rounded-full bg-muted"
@@ -111,7 +103,7 @@ export function RatingDistribution({ data }: Props) {
                           aria-valuenow={Math.round(pct)}
                           aria-valuemin={0}
                           aria-valuemax={100}
-                          aria-label={`${label} bintang ${star}: ${count} respon (${pct.toFixed(1)}%)`}
+                          aria-label={`${label} — ${NILAI_PERSEPSI[i].label}: ${count} respon (${pct.toFixed(1)}%)`}
                         >
                           <div
                             data-testid={`rating-bar-${key}-${star}`}

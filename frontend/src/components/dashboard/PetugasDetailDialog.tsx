@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { categorizeIkm, hitungIkm } from '@/lib/ikm'
+import { categorizeIkm, hitungIkm, UNSUR_LABEL } from '@/lib/ikm'
 import { cn } from '@/lib/utils'
 import type { Petugas, RekapPerPetugas, SurveiRecord } from '@/types'
 
@@ -34,10 +34,10 @@ const formatTanggal = (iso: string): string => {
 }
 
 const ASPEK = [
-  { key: 'kecepatan', label: 'Kecepatan', color: 'var(--chart-1)' },
-  { key: 'keramahan', label: 'Keramahan', color: 'var(--chart-2)' },
-  { key: 'informasi', label: 'Informasi', color: 'var(--chart-3)' },
-  { key: 'kenyamanan', label: 'Kenyamanan', color: 'var(--chart-4)' },
+  { key: 'kecepatan', label: UNSUR_LABEL.kecepatan, color: 'var(--chart-1)' },
+  { key: 'keramahan', label: UNSUR_LABEL.keramahan, color: 'var(--chart-2)' },
+  { key: 'informasi', label: UNSUR_LABEL.informasi, color: 'var(--chart-3)' },
+  { key: 'kenyamanan', label: UNSUR_LABEL.kenyamanan, color: 'var(--chart-4)' },
 ] as const
 
 export function PetugasDetailDialog({
@@ -115,12 +115,12 @@ export function PetugasDetailDialog({
               <div key={key} className="rounded-md border p-3">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-medium">{label}</span>
-                  <span className="tabular-nums">{v.toFixed(2)} / 5</span>
+                  <span className="tabular-nums">{v.toFixed(2)} / 4</span>
                 </div>
                 <div className="mt-2 h-1.5 rounded-full bg-muted">
                   <div
                     className="h-full rounded-full transition-all"
-                    style={{ width: `${(v / 5) * 100}%`, background: color }}
+                    style={{ width: `${(v / 4) * 100}%`, background: color }}
                   />
                 </div>
               </div>
@@ -142,7 +142,7 @@ export function PetugasDetailDialog({
               <ul className="divide-y">
                 {records.map((r) => {
                   const avg = (r.kecepatan + r.keramahan + r.informasi + r.kenyamanan) / 4
-                  const low = avg < 4
+                  const low = avg < 3
                   return (
                     <li key={r.id} className="p-3 text-sm">
                       <div className="flex flex-wrap items-center gap-2 text-xs">

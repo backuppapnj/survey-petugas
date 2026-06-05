@@ -3,7 +3,7 @@ import { MagicCard } from '@/components/ui/magic-card'
 import { NumberTicker } from '@/components/ui/number-ticker'
 import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar'
 import { Badge } from '@/components/ui/badge'
-import { categorizeIkm } from '@/lib/ikm'
+import { categorizeIkm, UNSUR_LABEL } from '@/lib/ikm'
 import { cn } from '@/lib/utils'
 import type { RekapSummary } from '@/types'
 
@@ -18,7 +18,7 @@ const ASPEK_META: Array<{
 }> = [
   {
     key: 'kecepatan',
-    label: 'Kecepatan',
+    label: UNSUR_LABEL.kecepatan,
     color: 'var(--chart-1)',
     borderClass: 'border-sky-400/80',
     gradientFrom: 'rgba(14, 165, 233, 0.95)',
@@ -27,7 +27,7 @@ const ASPEK_META: Array<{
   },
   {
     key: 'keramahan',
-    label: 'Keramahan',
+    label: UNSUR_LABEL.keramahan,
     color: 'var(--chart-2)',
     borderClass: 'border-emerald-400/80',
     gradientFrom: 'rgba(16, 185, 129, 0.95)',
@@ -36,7 +36,7 @@ const ASPEK_META: Array<{
   },
   {
     key: 'informasi',
-    label: 'Informasi',
+    label: UNSUR_LABEL.informasi,
     color: 'var(--chart-3)',
     borderClass: 'border-blue-400/80',
     gradientFrom: 'rgba(59, 130, 246, 0.95)',
@@ -45,7 +45,7 @@ const ASPEK_META: Array<{
   },
   {
     key: 'kenyamanan',
-    label: 'Kenyamanan',
+    label: UNSUR_LABEL.kenyamanan,
     color: 'var(--chart-4)',
     borderClass: 'border-teal-300/80',
     gradientFrom: 'rgba(45, 212, 191, 0.95)',
@@ -169,13 +169,13 @@ export function SummaryCards({ summary }: { summary: RekapSummary }) {
                 <p className="text-2xl font-bold tabular-nums">
                   <NumberTicker value={summary.rata_rata[key]} decimalPlaces={2} />
                 </p>
-                <span className="text-xs text-muted-foreground">/ 5.00</span>
+                <span className="text-xs text-muted-foreground">/ 4.00</span>
               </div>
               <div className="mt-2 h-1.5 w-full rounded-full bg-muted" aria-hidden>
                 <div
                   className="h-full rounded-full transition-all"
                   style={{
-                    width: `${Math.min(100, (summary.rata_rata[key] / 5) * 100)}%`,
+                    width: `${Math.min(100, (summary.rata_rata[key] / 4) * 100)}%`,
                     backgroundImage: `linear-gradient(90deg, ${gradientFrom}, ${gradientTo})`,
                   }}
                 />
