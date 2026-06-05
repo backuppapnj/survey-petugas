@@ -89,8 +89,15 @@ class SurveiModel extends Model
             $rataRata[$key] = round($val / $totalResponden, 2);
         }
 
-        $rataRataTotal = array_sum($rataRata) / 4;
-        $ikm           = round(($rataRataTotal / 5) * 100, 2);
+        // IKM dihitung sesuai PermenPAN-RB 14/2017 (skala 25..100) lewat helper
+        // (di-autoload via Config\Autoload::$helpers), bukan konversi linier
+        // rata/5*100 (skala 20..100) yang keliru.
+        $ikm = hitung_ikm(
+            $rataRata['kecepatan'],
+            $rataRata['keramahan'],
+            $rataRata['informasi'],
+            $rataRata['kenyamanan'],
+        );
 
         // Group survei per petugas
         $grouped = [];

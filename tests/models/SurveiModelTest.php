@@ -62,7 +62,24 @@ final class SurveiModelTest extends CIUnitTestCase
         $rekap = $model->getRekapByDateRange($today, $today);
 
         $this->assertSame(2, $rekap['summary']['total_responden']);
-        // Rata-rata: ((4+5)/2 + (4+5)/2 + (4+5)/2 + (4+5)/2) / 4 = 4.5; IKM = 4.5/5 * 100 = 90
-        $this->assertSame(90.0, (float) $rekap['summary']['ikm']);
+        // Rata-rata semua unsur = (4+5)/2 = 4.5.
+        // PermenPAN-RB 14/2017: NRR = ((4.5-1)/4)*3+1 = 3.625; IKM = 3.625 * 25 = 90.63
+        $this->assertSame(90.63, (float) $rekap['summary']['ikm']);
+    }
+
+    public function testGetRekapByDateRangeMenghitungIKMSesuaiPermenPANRB(): void
+    {
+        $model = new SurveiModel();
+
+        // Seluruh unsur dinilai bintang 1 (terendah). Rumus PermenPAN-RB
+        // memberi batas bawah Nilai IKM = 25, BUKAN 20 seperti konversi
+        // linier lama (rata/5*100). Inilah inti perbaikan inkonsistensi.
+        $model->insert(['petugas_id' => 1, 'kecepatan' => 1, 'keramahan' => 1, 'informasi' => 1, 'kenyamanan' => 1]);
+
+        $today = date('Y-m-d');
+        $rekap = $model->getRekapByDateRange($today, $today);
+
+        $this->assertSame(1, $rekap['summary']['total_responden']);
+        $this->assertSame(25.0, (float) $rekap['summary']['ikm']);
     }
 }
