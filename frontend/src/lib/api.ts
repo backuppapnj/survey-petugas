@@ -6,6 +6,7 @@ import type {
   SurveiPayload,
   RekapResponse,
   ApiError,
+  AnomaliResponse,
 } from '@/types'
 
 const api = axios.create({
@@ -80,6 +81,10 @@ export async function restorePetugas(id: number): Promise<{ message: string }> {
 
 export async function getRekap(start: string, end: string): Promise<RekapResponse> {
   return (await api.get<RekapResponse>(`/admin/survei/rekap?start=${start}&end=${end}`)).data
+}
+
+export async function getAnomali(start: string, end: string): Promise<AnomaliResponse> {
+  return (await api.get<AnomaliResponse>(`/admin/anomali?start=${start}&end=${end}`)).data
 }
 
 export function getExportUrl(start: string, end: string): string {
