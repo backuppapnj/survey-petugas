@@ -56,8 +56,13 @@ class SurveiModel extends Model
      */
     public function getRekapByDateRange(string $start, string $end): array
     {
-        $semua = $this->where('DATE(created_at) >=', $start)
-            ->where('DATE(created_at) <=', $end)
+        // PERFORMA: gunakan rentang DATETIME mentah, bukan DATE(created_at).
+        // Membungkus kolom dengan fungsi DATE() membuat query non-sargable
+        // sehingga index pada created_at tidak terpakai (full table scan).
+        // Rentang [start 00:00:00 .. end 23:59:59] memberi hasil sama namun
+        // tetap memanfaatkan index created_at yang sudah ada.
+        $semua = $this->where('created_at >=', $start . ' 00:00:00')
+            ->where('created_at <=', $end . ' 23:59:59')
             ->orderBy('created_at', 'DESC')
             ->findAll();
 
