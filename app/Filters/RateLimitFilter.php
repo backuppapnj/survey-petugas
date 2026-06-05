@@ -8,74 +8,148 @@ use CodeIgniter\HTTP\ResponseInterface;
 
 /**
  * Rate limiting filter to prevent brute force attacks on authentication endpoints.
- * Uses in-memory cache (suitable for single-server/shared hosting).
- * For multi-server production, consider Redis or database-based rate limiting.
+ * Uses file-based cache for shared hosting compatibility (multiple PHP processes).
  */
 class RateLimitFilter implements FilterInterface
 {
     private const MAX_REQUESTS = 5;      // Max requests per window
     private const WINDOW_SECONDS = 60;   // Time window in seconds
 
-    // Simple in-memory cache for rate limiting
-    // In production, use Redis or database for multi-server
-    private static array $hits = [];
-
     /**
-     * Get IP address from request object.
-     * Handles both real Request objects and test doubles.
-     *
-     * @param object $request
-     * @return string
+     * Get the client IP address with proper validation.
+     * Only trusts X-Forwarded-For when behind a known reverse proxy.
      */
-    private function getIPAddress(object $request): string
+    private function getClientIp(RequestInterface $request): string
     {
-        // Handle test doubles (they have these methods directly)
-        if (method_exists($request, 'getIPAddress')) {
-            return $request->getIPAddress();
+        $config = config('App');
+
+        // If we have trusted proxies, check X-Forwarded-For
+        if (!empty($config->proxyIPs)) {
+            $ip = $request->getHeaderLine('X-Forwarded-For');
+
+            if ($ip !== null && $ip !== '') {
+                // X-Forwarded-For can contain multiple IPs: client, proxy1, proxy2
+                // Take the first (leftmost) IP as that's the original client
+                $ips = array_map('trim', explode(',', $ip));
+                $clientIp = $ips[0] ?? '';
+
+                // Validate IP format
+                if ($this->isValidIp($clientIp)) {
+                    return $clientIp;
+                }
+            }
+
+            // Check X-Real-IP as fallback
+            $ip = $request->getHeaderLine('X-Real-IP');
+            if ($ip !== null && $ip !== '' && $this->isValidIp($ip)) {
+                return $ip;
+            }
         }
-        return '0.0.0.0';
+
+        // Fall back to direct connection IP
+        return $request->getIPAddress();
     }
 
     /**
-     * Get path from request object.
-     * Handles both real Request objects and test doubles.
-     *
-     * @param object $request
-     * @return string
+     * Validate IP address format.
      */
-    private function getPath(object $request): string
+    private function isValidIp(string $ip): bool
     {
-        // Handle test doubles (they have these methods directly)
-        if (method_exists($request, 'getPath')) {
-            return $request->getPath();
-        }
-        return '/';
+        return filter_var($ip, FILTER_VALIDATE_IP) !== false;
     }
 
-    public function before($request, $arguments = null)
+    /**
+     * Get rate limit cache file path.
+     */
+    private function getCacheFile(): string
     {
-        $ip = $this->getIPAddress($request);
-        $endpoint = $this->getPath($request);
+        return WRITEPATH . 'cache' . DIRECTORY_SEPARATOR . 'ratelimit.json';
+    }
+
+    /**
+     * Load rate limit data from file.
+     */
+    private function loadRateLimitData(): array
+    {
+        $cacheFile = $this->getCacheFile();
+
+        if (!is_file($cacheFile)) {
+            return [];
+        }
+
+        $content = @file_get_contents($cacheFile);
+        if ($content === false) {
+            return [];
+        }
+
+        $data = json_decode($content, true);
+        return is_array($data) ? $data : [];
+    }
+
+    /**
+     * Save rate limit data to file.
+     */
+    private function saveRateLimitData(array $data): bool
+    {
+        $cacheFile = $this->getCacheFile();
+        $cacheDir = dirname($cacheFile);
+
+        // Ensure cache directory exists
+        if (!is_dir($cacheDir)) {
+            mkdir($cacheDir, 0755, true);
+        }
+
+        $json = json_encode($data, JSON_PRETTY_PRINT);
+        return file_put_contents($cacheFile, $json) !== false;
+    }
+
+    /**
+     * Clean up expired entries from rate limit data.
+     */
+    private function cleanupExpiredEntries(array &$data, int $now): void
+    {
+        foreach ($data as $key => $entry) {
+            if ($now - $entry['window_start'] > self::WINDOW_SECONDS * 2) {
+                unset($data[$key]);
+            }
+        }
+    }
+
+    public function before(RequestInterface $request, $arguments = null)
+    {
+        $ip = $this->getClientIp($request);
+        $endpoint = $request->getPath();
 
         // Only rate limit auth endpoints
         if (!preg_match('#/api/(login|auth)#', $endpoint)) {
             return;
         }
 
-        $key = $this->getCacheKey($ip, $endpoint);
+        $key = $ip . ':' . $endpoint;
         $now = time();
 
+        // Load existing data
+        $data = $this->loadRateLimitData();
+
+        // Clean up expired entries periodically
+        if (mt_rand(1, 100) <= 10) { // 10% chance to cleanup
+            $this->cleanupExpiredEntries($data, $now);
+        }
+
         // Initialize or reset window if expired
-        if (!isset(self::$hits[$key]) || $this->isWindowExpired(self::$hits[$key], $now)) {
-            self::$hits[$key] = ['count' => 0, 'window_start' => $now];
+        if (!isset($data[$key]) || ($now - $data[$key]['window_start']) > self::WINDOW_SECONDS) {
+            $data[$key] = ['count' => 0, 'window_start' => $now];
         }
 
         // Increment counter
-        self::$hits[$key]['count']++;
+        $data[$key]['count']++;
+
+        // Save updated data
+        $this->saveRateLimitData($data);
 
         // Check if rate limit exceeded
-        if (self::$hits[$key]['count'] > self::MAX_REQUESTS) {
-            $retryAfter = self::WINDOW_SECONDS - ($now - self::$hits[$key]['window_start']);
+        if ($data[$key]['count'] > self::MAX_REQUESTS) {
+            $retryAfter = self::WINDOW_SECONDS - ($now - $data[$key]['window_start']);
 
             return service('response')
                 ->setStatusCode(429)
@@ -83,37 +157,12 @@ class RateLimitFilter implements FilterInterface
                     'status' => 429,
                     'error' => 'Terlalu banyak percobaan login. Silakan coba lagi dalam ' . max(1, $retryAfter) . ' detik.',
                 ])
-                ->setHeader('Retry-After', (string) max(1, $retryAfter))
-                ->setHeader('X-RateLimit-Limit', (string) self::MAX_REQUESTS)
-                ->setHeader('X-RateLimit-Remaining', '0');
+                ->setHeader('Retry-After', (string) max(1, $retryAfter));
         }
-
-        // Add rate limit headers to response
-        $remaining = max(0, self::MAX_REQUESTS - self::$hits[$key]['count']);
-        service('response')->setHeader('X-RateLimit-Limit', (string) self::MAX_REQUESTS);
-        service('response')->setHeader('X-RateLimit-Remaining', (string) $remaining);
     }
 
-    public function after($request, ResponseInterface $response, $arguments = null)
+    public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
         // No action needed after response
-    }
-
-    private function getCacheKey(string $ip, string $endpoint): string
-    {
-        return $ip . ':' . $endpoint;
-    }
-
-    private function isWindowExpired(array $hitData, int $now): bool
-    {
-        return ($now - $hitData['window_start']) > self::WINDOW_SECONDS;
-    }
-
-    /**
-     * Clear rate limit for testing purposes.
-     */
-    public static function clearCache(): void
-    {
-        self::$hits = [];
     }
 }

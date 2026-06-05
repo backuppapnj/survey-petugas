@@ -25,20 +25,34 @@ class Cors extends BaseConfig
      *      maxAge: int,
      *  }
      */
-    public array $default = [
-        'allowedOrigins'         => $this->parseAllowedOrigins(),
-        'allowedOriginsPatterns' => [],
-        'supportsCredentials'    => true,
-        'allowedHeaders'         => [
-            'Content-Type',
-            'Authorization',
-            'X-Requested-With',
-            'X-CSRF-TOKEN',
-        ],
-        'exposedHeaders'         => ['X-Total-Count', 'X-RateLimit-Limit', 'X-RateLimit-Remaining'],
-        'allowedMethods'         => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-        'maxAge'                 => 86400,
-    ];
+    public array $default;
+
+    /**
+     * Initialize CORS configuration.
+     */
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->default = [
+            'allowedOrigins'         => $this->parseAllowedOrigins(),
+            'allowedOriginsPatterns' => [],
+            'supportsCredentials'    => true,
+            'allowedHeaders'         => [
+                'Content-Type',
+                'Authorization',
+                'X-Requested-With',
+                'X-CSRF-TOKEN',
+            ],
+            'exposedHeaders'         => [
+                // X-Total-Count is safe to expose (common API practice)
+                // Rate limit headers are NOT exposed to prevent information disclosure
+                'X-Total-Count',
+            ],
+            'allowedMethods'         => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+            'maxAge'                 => 86400,
+        ];
+    }
 
     /**
      * Parse allowed origins from environment variable.
