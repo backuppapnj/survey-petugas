@@ -14,11 +14,18 @@ use CodeIgniter\Test\CIUnitTestCase;
  */
 final class QueueClientTest extends CIUnitTestCase
 {
-    public function testBelumDikonfigurasiMengembalikanNull(): void
+    protected function tearDown(): void
     {
-        // Pastikan env kosong (default di lingkungan test).
         putenv('ANTRIAN_PTSP_URL');
         putenv('ANTRIAN_PTSP_API_KEY');
+        parent::tearDown();
+    }
+
+    public function testBelumDikonfigurasiMengembalikanNull(): void
+    {
+        // Set ke string kosong secara eksplisit (lebih robust daripada unset).
+        putenv('ANTRIAN_PTSP_URL=');
+        putenv('ANTRIAN_PTSP_API_KEY=');
 
         $client = new QueueClient();
         $this->assertNull($client->getServedCounts('2026-06-01', '2026-06-05'));
@@ -34,6 +41,8 @@ final class QueueClientTest extends CIUnitTestCase
     public function testParseResponseBodyRusakMengembalikanNull(): void
     {
         $client = new QueueClient();
+        $this->assertNull($client->parseResponse(200, null));
+        $this->assertNull($client->parseResponse(200, ''));
         $this->assertNull($client->parseResponse(200, '{bukan json'));
         $this->assertNull($client->parseResponse(200, '"string"'));
         $this->assertNull($client->parseResponse(200, '{"tidak_ada_data":1}'));
@@ -47,5 +56,13 @@ final class QueueClientTest extends CIUnitTestCase
         $map = $client->parseResponse(200, $body);
 
         $this->assertSame(['2026-06-02' => 12, '2026-06-03' => 5], $map);
+    }
+
+    public function testParseResponseDataKosongMengembalikanArrayKosong(): void
+    {
+        // data: [] berarti antrean tersedia namun 0 tiket selesai -> map kosong,
+        // BUKAN null (yang berarti antrean tidak tersedia/gagal).
+        $client = new QueueClient();
+        $this->assertSame([], $client->parseResponse(200, '{"data":[],"start":"2026-06-01","end":"2026-06-05"}'));
     }
 }

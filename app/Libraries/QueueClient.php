@@ -2,7 +2,7 @@
 
 namespace App\Libraries;
 
-use Config\Services;
+use CodeIgniter\Config\Services;
 use Throwable;
 
 /**
@@ -82,7 +82,7 @@ class QueueClient
 
         $map = [];
         foreach ($decoded['data'] as $row) {
-            if (is_array($row) && isset($row['date'], $row['served'])) {
+            if (is_array($row) && isset($row['date'], $row['served']) && is_numeric($row['served'])) {
                 $map[(string) $row['date']] = (int) $row['served'];
             }
         }
