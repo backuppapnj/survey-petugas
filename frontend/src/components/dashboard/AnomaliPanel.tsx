@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { AlertTriangle, Clock, TrendingUp, Users } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -17,7 +18,7 @@ function SummaryChip({
   testId,
   tone,
 }: {
-  icon: React.ReactNode
+  icon: ReactNode
   label: string
   value: number
   testId: string
@@ -120,13 +121,13 @@ export function AnomaliPanel({ data, loading, error }: AnomaliPanelProps) {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm">
+            <table aria-label="Survei vs tamu dilayani harian" className="w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b text-left text-muted-foreground">
-                  <th className="p-2">Tanggal</th>
-                  <th className="p-2 text-right">Survei</th>
-                  <th className="p-2 text-right">Dilayani</th>
-                  <th className="p-2">Status</th>
+                  <th scope="col" className="p-2">Tanggal</th>
+                  <th scope="col" className="p-2 text-right">Survei</th>
+                  <th scope="col" className="p-2 text-right">Dilayani</th>
+                  <th scope="col" className="p-2">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -213,6 +214,7 @@ export function AnomaliPanel({ data, loading, error }: AnomaliPanelProps) {
               </p>
             ) : (
               <ul className="max-h-64 space-y-2 overflow-y-auto">
+                {/* idx tiebreaker: dua submission petugas sama bisa beda baris namun created_at identik */}
                 {data.luar_jam.items.map((item, idx) => (
                   <li
                     key={`${item.petugas_id}-${item.created_at}-${idx}`}

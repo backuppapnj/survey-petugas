@@ -60,4 +60,33 @@ describe('AnomaliPanel', () => {
     render(<AnomaliPanel data={null} loading={false} error="Gagal memuat" />)
     expect(screen.getByRole('alert')).toHaveTextContent('Gagal memuat')
   })
+
+  it('memberi highlight pada baris tanggal anomali, bukan baris normal', () => {
+    render(<AnomaliPanel data={sample} loading={false} error={null} />)
+    const baisAnomali = screen.getByText('2026-06-02').closest('tr')
+    const barisNormal = screen.getByText('2026-06-03').closest('tr')
+    expect(baisAnomali?.className).toContain('bg-rose-50/60')
+    expect(barisNormal?.className ?? '').not.toContain('bg-rose-50/60')
+  })
+
+  it('menampilkan teks kosong saat tidak ada petugas outlier', () => {
+    const d: AnomaliResponse = { ...sample, petugas_outlier: { median: 0, items: [] } }
+    render(<AnomaliPanel data={d} loading={false} error={null} />)
+    expect(screen.getByText(/tidak ada petugas dengan jumlah survei/i)).toBeInTheDocument()
+  })
+
+  it('menampilkan teks kosong saat tidak ada submit luar jam', () => {
+    const d: AnomaliResponse = { ...sample, luar_jam: { total: 0, items: [] } }
+    render(<AnomaliPanel data={d} loading={false} error={null} />)
+    expect(screen.getByText(/semua submit berada dalam jam layanan/i)).toBeInTheDocument()
+  })
+
+  it('menampilkan tanda "—" pada kolom dilayani saat antrean tidak tersedia', () => {
+    const d: AnomaliResponse = {
+      ...sample,
+      harian: { antrean_tersedia: false, items: [{ date: '2026-06-02', survei: 3, dilayani: 0, anomali: false }] },
+    }
+    render(<AnomaliPanel data={d} loading={false} error={null} />)
+    expect(screen.getByText('—')).toBeInTheDocument()
+  })
 })
