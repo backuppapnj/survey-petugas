@@ -16,9 +16,10 @@ import { DateFilter } from '@/components/dashboard/DateFilter'
 import { SaranList } from '@/components/dashboard/SaranList'
 import { RatingDistribution } from '@/components/dashboard/RatingDistribution'
 import { PetugasDetailDialog } from '@/components/dashboard/PetugasDetailDialog'
-import { getAdminPetugas, getExportUrl, getRekap } from '@/lib/api'
+import { AnomaliPanel } from '@/components/dashboard/AnomaliPanel'
+import { getAdminPetugas, getAnomali, getExportUrl, getRekap } from '@/lib/api'
 import { categorizeIkm, hitungIkm } from '@/lib/ikm'
-import type { Petugas, RekapResponse, SurveiRecord } from '@/types'
+import type { AnomaliResponse, Petugas, RekapResponse, SurveiRecord } from '@/types'
 
 const fmt = (d: Date): string =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -49,6 +50,10 @@ export default function DashboardPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [loadedRangeKey, setLoadedRangeKey] = useState<string | null>(null)
   const latestRequestRef = useRef(0)
+  const [anomali, setAnomali] = useState<AnomaliResponse | null>(null)
+  const [anomaliLoading, setAnomaliLoading] = useState<boolean>(false)
+  const [anomaliError, setAnomaliError] = useState<string | null>(null)
+  const anomaliRequestRef = useRef(0)
   const activeRangeKey = `${start}:${end}`
   const hasValidDateRange = Boolean(start && end && start <= end)
 
@@ -101,6 +106,28 @@ export default function DashboardPage() {
     const id = setInterval(() => fetchData(false), 60_000)
     return () => clearInterval(id)
   }, [fetchData, hasValidDateRange])
+
+  // Ambil data anomali terpisah (non-blocking) agar timeout antrean tidak
+  // menahan render dashboard utama. Race terbaru dimenangkan via requestRef.
+  useEffect(() => {
+    if (!hasValidDateRange) return
+    const reqId = ++anomaliRequestRef.current
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAnomaliLoading(true)
+    setAnomaliError(null)
+    getAnomali(start, end)
+      .then((res) => {
+        if (reqId === anomaliRequestRef.current) setAnomali(res)
+      })
+      .catch(() => {
+        if (reqId === anomaliRequestRef.current) {
+          setAnomaliError('Gagal memuat data anomali.')
+        }
+      })
+      .finally(() => {
+        if (reqId === anomaliRequestRef.current) setAnomaliLoading(false)
+      })
+  }, [start, end, hasValidDateRange])
 
   // P3-22: opsi unit kerja diturunkan dari daftar petugas
   const unitOptions = useMemo(() => {
@@ -339,6 +366,7 @@ export default function DashboardPage() {
                 Saran ({semua.filter((s) => s.saran && s.saran.trim().length > 0).length})
               </TabsTrigger>
               <TabsTrigger value="detail">Tabel Detail</TabsTrigger>
+              <TabsTrigger value="anomali">Anomali</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
@@ -393,6 +421,17 @@ export default function DashboardPage() {
                 transition={{ duration: 0.28, ease: 'easeOut' }}
               >
                 <RekapTable data={visibleRekap!.per_petugas} onSelectPetugas={setDetailId} />
+              </motion.div>
+            </TabsContent>
+
+            <TabsContent value="anomali">
+              <motion.div
+                data-testid="dashboard-tab-panel-anomali"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, ease: 'easeOut' }}
+              >
+                <AnomaliPanel data={anomali} loading={anomaliLoading} error={anomaliError} />
               </motion.div>
             </TabsContent>
           </Tabs>
