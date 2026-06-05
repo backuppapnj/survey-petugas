@@ -93,7 +93,7 @@ export function BarChartCard({ data, onSelectPetugas }: BarChartCardProps) {
                     if (found) onSelectPetugas(found.id)
                   }}
                 />
-                <YAxis domain={[0, 5]} tick={{ fontSize: 11 }} />
+                <YAxis domain={[0, 4]} tick={{ fontSize: 11 }} />
                 <Tooltip
                   contentStyle={tooltipStyle}
                   cursor={{ fill: 'var(--accent)', opacity: 0.3 }}

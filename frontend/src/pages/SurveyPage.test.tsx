@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -99,25 +99,25 @@ describe('SurveyPage', () => {
     renderAt('/survey/1')
     await waitFor(() => screen.getByText('Budi Santoso'))
 
-    const user = userEvent.setup()
-    // Klik bintang ke-5 untuk semua 4 aspek menggunakan radiogroup berdasarkan aria-label
-    for (const aspek of ['Kecepatan', 'Keramahan', 'Informasi', 'Kenyamanan']) {
-      const group = screen.getByRole('radiogroup', { name: `Rating ${aspek}` })
-      const stars = group.querySelectorAll('button')
-      await user.click(stars[4])
-    }
+    // Pilih "Sangat Baik (nilai 4)" pada setiap radiogroup RatingScale (skala 1-4)
+    const groups = screen.getAllByRole('radiogroup')
+    groups.forEach((g) => {
+      fireEvent.click(within(g).getByRole('radio', { name: /sangat baik \(nilai 4\)/i }))
+    })
 
     const submit = screen.getByTestId('submit-survey')
     expect(submit).toBeEnabled()
+
+    const user = userEvent.setup()
     await user.click(submit)
 
     await waitFor(() => {
       expect(submitSpy).toHaveBeenCalledWith({
         petugas_id: 1,
-        kecepatan: 5,
-        keramahan: 5,
-        informasi: 5,
-        kenyamanan: 5,
+        kecepatan: 4,
+        keramahan: 4,
+        informasi: 4,
+        kenyamanan: 4,
         saran: '',
       })
     })
@@ -135,13 +135,13 @@ describe('SurveyPage', () => {
     renderAt('/survey/1')
     await waitFor(() => screen.getByText('Budi Santoso'))
 
-    const user = userEvent.setup()
-    for (const aspek of ['Kecepatan', 'Keramahan', 'Informasi', 'Kenyamanan']) {
-      const group = screen.getByRole('radiogroup', { name: `Rating ${aspek}` })
-      const stars = group.querySelectorAll('button')
-      await user.click(stars[4])
-    }
+    // Pilih "Sangat Baik (nilai 4)" pada setiap radiogroup RatingScale (skala 1-4)
+    const groups = screen.getAllByRole('radiogroup')
+    groups.forEach((g) => {
+      fireEvent.click(within(g).getByRole('radio', { name: /sangat baik \(nilai 4\)/i }))
+    })
 
+    const user = userEvent.setup()
     const submit = screen.getByTestId('submit-survey')
     await user.click(submit)
     await user.click(submit)
@@ -165,14 +165,13 @@ describe('SurveyPage', () => {
     renderAt('/survey/1')
     await waitFor(() => screen.getByText('Budi Santoso'))
 
+    // Pilih "Sangat Baik (nilai 4)" pada setiap radiogroup RatingScale (skala 1-4)
+    const groups = screen.getAllByRole('radiogroup')
+    groups.forEach((g) => {
+      fireEvent.click(within(g).getByRole('radio', { name: /sangat baik \(nilai 4\)/i }))
+    })
+
     const user = userEvent.setup()
-
-    for (const aspek of ['Kecepatan', 'Keramahan', 'Informasi', 'Kenyamanan']) {
-      const group = screen.getByRole('radiogroup', { name: `Rating ${aspek}` })
-      const stars = group.querySelectorAll('button')
-      await user.click(stars[4])
-    }
-
     await user.click(screen.getByTestId('submit-survey'))
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /beri penilaian lagi/i })).toBeInTheDocument()

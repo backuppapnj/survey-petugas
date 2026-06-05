@@ -24,10 +24,10 @@ final class SurveiControllerTest extends CIUnitTestCase
     {
         $result = $this->withBodyFormat('json')->call('post', '/api/survei', [
             'petugas_id' => 1,
-            'kecepatan'  => 5,
-            'keramahan'  => 4,
-            'informasi'  => 5,
-            'kenyamanan' => 4,
+            'kecepatan'  => 4,
+            'keramahan'  => 3,
+            'informasi'  => 4,
+            'kenyamanan' => 3,
             'saran'      => 'Mantap',
         ]);
 
@@ -37,14 +37,14 @@ final class SurveiControllerTest extends CIUnitTestCase
         $this->assertSame(1, $count);
     }
 
-    public function testSubmitGagalDenganRatingDiluar1Sampai5(): void
+    public function testSubmitGagalDenganRatingDiluar1Sampai4(): void
     {
         $result = $this->withBodyFormat('json')->call('post', '/api/survei', [
             'petugas_id' => 1,
-            'kecepatan'  => 6,
-            'keramahan'  => 4,
-            'informasi'  => 5,
-            'kenyamanan' => 4,
+            'kecepatan'  => 5,
+            'keramahan'  => 3,
+            'informasi'  => 4,
+            'kenyamanan' => 3,
         ]);
 
         $result->assertStatus(422);
@@ -56,10 +56,10 @@ final class SurveiControllerTest extends CIUnitTestCase
 
         $result = $this->withBodyFormat('json')->call('post', '/api/survei', [
             'petugas_id' => 1,
-            'kecepatan'  => 5,
-            'keramahan'  => 5,
-            'informasi'  => 5,
-            'kenyamanan' => 5,
+            'kecepatan'  => 4,
+            'keramahan'  => 4,
+            'informasi'  => 4,
+            'kenyamanan' => 4,
         ]);
 
         $result->assertStatus(422);

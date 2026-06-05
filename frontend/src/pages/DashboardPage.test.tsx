@@ -13,7 +13,8 @@ import { SaranList } from '@/components/dashboard/SaranList'
 const fakeRekap = {
   summary: {
     total_responden: 10,
-    rata_rata: { kecepatan: 4.5, keramahan: 4.8, informasi: 4.2, kenyamanan: 4.7 },
+    // Rata-rata valid skala 1-4; IKM = rata-rata × 25 (diinjeksi langsung = 91.0)
+    rata_rata: { kecepatan: 3.6, keramahan: 3.8, informasi: 3.5, kenyamanan: 3.7 },
     ikm: 91.0,
   },
   per_petugas: [
@@ -22,17 +23,18 @@ const fakeRekap = {
       nama: 'Budi',
       foto_url: '/api/uploads/budi.png',
       total_responden: 5,
-      rata_rata: { kecepatan: 5, keramahan: 5, informasi: 4, kenyamanan: 5 },
+      // Rata-rata valid skala 1-4; IKM = (4+4+4+4)/4 × 25 = 100.00
+      rata_rata: { kecepatan: 4, keramahan: 4, informasi: 4, kenyamanan: 4 },
     },
   ],
   semua: [
     {
       id: 10,
       petugas_id: 1,
-      kecepatan: 5,
-      keramahan: 5,
+      kecepatan: 4,
+      keramahan: 4,
       informasi: 4,
-      kenyamanan: 5,
+      kenyamanan: 4,
       saran: 'Pelayanan cepat dan petugas sangat membantu.',
       created_at: '2026-04-29 09:00:00',
     },
@@ -51,7 +53,7 @@ const fakeRekap = {
       petugas_id: 1,
       kecepatan: 4,
       keramahan: 4,
-      informasi: 5,
+      informasi: 4,
       kenyamanan: 4,
       saran: 'Informasi layanan sudah jelas dan mudah diikuti.',
       created_at: '2026-04-28 16:45:00',

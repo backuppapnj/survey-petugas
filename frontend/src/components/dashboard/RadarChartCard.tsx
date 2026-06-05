@@ -28,7 +28,7 @@ export function RadarChartCard({ rataRata }: { rataRata: RataRata }) {
       <CardHeader>
         <CardTitle>Profil Rata-rata Aspek</CardTitle>
         <p className="text-xs text-muted-foreground">
-          Skor 4 aspek pelayanan pada skala 1–5.
+          Skor 4 aspek pelayanan pada skala 1–4.
         </p>
       </CardHeader>
       <CardContent className="h-72">
@@ -42,9 +42,9 @@ export function RadarChartCard({ rataRata }: { rataRata: RataRata }) {
               <PolarGrid stroke="var(--border)" />
               <PolarAngleAxis dataKey="aspek" tick={{ fontSize: 12 }} />
               <PolarRadiusAxis
-                domain={[0, 5]}
+                domain={[0, 4]}
                 tick={{ fontSize: 10 }}
-                tickCount={6}
+                tickCount={5}
                 stroke="var(--border)"
               />
               <Tooltip
