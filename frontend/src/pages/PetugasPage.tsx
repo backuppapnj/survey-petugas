@@ -253,7 +253,7 @@ export default function PetugasPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Avatar className="size-8">
-                          <AvatarImage src={p.foto_url} alt={p.nama} />
+                          <AvatarImage src={p.foto_url ?? undefined} alt={p.nama} />
                           <AvatarFallback>{p.nama.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <span className="font-medium">{p.nama}</span>

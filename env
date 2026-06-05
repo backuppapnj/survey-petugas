@@ -67,3 +67,30 @@
 #--------------------------------------------------------------------
 
 # logger.threshold = 4
+
+#--------------------------------------------------------------------
+# SURVEI PTSP — KONFIGURASI APLIKASI
+#--------------------------------------------------------------------
+# WAJIB diisi di produksi. Salin file ini menjadi ".env", lalu sesuaikan.
+
+# Lingkungan: gunakan "production" saat deploy.
+# CI_ENVIRONMENT = production
+
+# Base URL aplikasi (WAJIB di produksi, akhiri dengan slash).
+# app.baseURL = 'https://domain-anda.go.id/'
+
+# Origin frontend yang diizinkan mengakses API (CORS). Pisahkan dengan koma
+# bila lebih dari satu. Default dev: http://localhost:5173
+# app.allowedOrigins = 'https://domain-anda.go.id'
+
+# Kunci rahasia JWT (WAJIB di produksi). Gunakan string acak yang panjang & aman.
+# Hasilkan misalnya dengan: php -r "echo bin2hex(random_bytes(32));"
+# JWT_SECRET_KEY = 'ganti-dengan-string-acak-yang-aman'
+
+# Koneksi database produksi.
+# database.default.hostname = localhost
+# database.default.database = survei_ptsp
+# database.default.username = db_user
+# database.default.password = db_password
+# database.default.DBDriver = MySQLi
+# database.default.port = 3306

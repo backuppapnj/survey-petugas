@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, ShieldCheck } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Lock, ShieldCheck, TriangleAlert, User } from 'lucide-react'
 import { toast } from 'sonner'
 import type { AxiosError } from 'axios'
 import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
@@ -50,20 +50,20 @@ export default function LoginPage() {
           'text-sky-400/40 [mask-image:radial-gradient(480px_circle_at_center,white,transparent)]',
         )}
       />
-      <Card className="relative w-full max-w-sm overflow-hidden rounded-[28px] border border-blue-500/20 bg-card/92 shadow-[0_28px_80px_-42px_rgba(37,99,235,0.55)] backdrop-blur-sm">
+      <Card className="relative w-full max-w-md overflow-hidden rounded-[28px] border border-blue-500/20 bg-card/92 px-2 py-2 shadow-[0_28px_80px_-42px_rgba(37,99,235,0.55)] backdrop-blur-sm">
         <div
           data-testid="login-card-shimmer"
           className="absolute inset-x-6 top-0 h-1.5 rounded-full bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-300 opacity-90"
         />
-        <CardHeader className="space-y-3 text-center">
+        <CardHeader className="space-y-4 pt-6 pb-2 text-center">
           <div
             data-testid="login-icon-container"
-            className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-lg shadow-blue-500/30"
+            className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-lg shadow-blue-500/30 ring-4 ring-blue-500/10"
           >
-            <ShieldCheck className="size-7" aria-hidden />
+            <ShieldCheck className="size-8" aria-hidden />
           </div>
-          <div>
-            <CardTitle className="text-xl">
+          <div className="space-y-1.5">
+            <CardTitle className="text-2xl">
               <AnimatedGradientText
                 data-testid="login-title-gradient"
                 colorFrom="#38bdf8"
@@ -73,29 +73,43 @@ export default function LoginPage() {
                 Survei Kepuasan PTSP
               </AnimatedGradientText>
             </CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Login Administrator
+            <p className="text-sm text-muted-foreground">
+              Masuk ke panel administrator untuk mengelola survei
             </p>
           </div>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        <CardContent className="px-6 pt-2 pb-6">
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                autoFocus
-                autoComplete="username"
-                placeholder="admin"
-                className="border-blue-200/70 bg-background/85 focus-visible:border-blue-400 focus-visible:ring-blue-500/25 dark:border-blue-900/60 dark:bg-slate-950/60"
-              />
+              <Label htmlFor="username" className="text-sm font-medium">
+                Username
+              </Label>
+              <div className="relative">
+                <User
+                  className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden
+                />
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  autoFocus
+                  autoComplete="username"
+                  placeholder="Masukkan username"
+                  className="h-11 border-blue-200/70 bg-background/85 pl-10 focus-visible:border-blue-400 focus-visible:ring-blue-500/25 dark:border-blue-900/60 dark:bg-slate-950/60"
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-sm font-medium">
+                Password
+              </Label>
               <div className="relative">
+                <Lock
+                  className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden
+                />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -109,13 +123,14 @@ export default function LoginPage() {
                   }
                   required
                   autoComplete="current-password"
-                  className="border-blue-200/70 bg-background/85 pr-10 focus-visible:border-blue-400 focus-visible:ring-blue-500/25 dark:border-blue-900/60 dark:bg-slate-950/60"
+                  placeholder="Masukkan password"
+                  className="h-11 border-blue-200/70 bg-background/85 pr-11 pl-10 focus-visible:border-blue-400 focus-visible:ring-blue-500/25 dark:border-blue-900/60 dark:bg-slate-950/60"
                   aria-describedby={capsOn ? 'caps-warning' : undefined}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  className="absolute top-1/2 right-1.5 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-blue-500/10 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:text-blue-300"
                   aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
                 >
                   {showPassword ? (
@@ -126,21 +141,34 @@ export default function LoginPage() {
                 </button>
               </div>
               {capsOn && (
-                <p id="caps-warning" className="text-xs text-amber-600 dark:text-amber-400">
+                <p
+                  id="caps-warning"
+                  className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400"
+                >
+                  <TriangleAlert className="size-3.5" aria-hidden />
                   Caps Lock aktif
                 </p>
               )}
             </div>
             <Button
               type="submit"
-              className="app-gradient-button w-full border border-blue-300/40 bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 hover:from-sky-400 hover:to-blue-500"
+              className="app-gradient-button h-11 w-full border border-blue-300/40 bg-gradient-to-r from-sky-500 to-blue-600 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 hover:from-sky-400 hover:to-blue-500"
               disabled={submitting}
             >
-              {submitting ? 'Memproses...' : 'Login'}
+              {submitting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                  Memproses...
+                </>
+              ) : (
+                'Login'
+              )}
             </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              Lupa password? Hubungi pengelola sistem.
-            </p>
+            <div className="border-t border-border/60 pt-4">
+              <p className="text-center text-xs text-muted-foreground">
+                Lupa password? Hubungi pengelola sistem.
+              </p>
+            </div>
           </form>
         </CardContent>
       </Card>

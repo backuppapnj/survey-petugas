@@ -25,7 +25,7 @@ class Cors extends BaseConfig
      *  }
      */
     public array $default = [
-        'allowedOrigins'         => ['http://localhost:5173'],
+        'allowedOrigins'         => [],
         'allowedOriginsPatterns' => [],
         'supportsCredentials'    => false,
         'allowedHeaders'         => ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -33,4 +33,19 @@ class Cors extends BaseConfig
         'allowedMethods'         => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         'maxAge'                 => 7200,
     ];
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        // Origin yang diizinkan dibaca dari env "app.allowedOrigins" (pisahkan
+        // dengan koma untuk beberapa origin). Default ke dev server Vite agar
+        // pengembangan lokal tetap berjalan tanpa konfigurasi tambahan.
+        $origins = (string) env('app.allowedOrigins', 'http://localhost:5173');
+
+        $this->default['allowedOrigins'] = array_values(array_filter(
+            array_map('trim', explode(',', $origins)),
+            static fn (string $origin): bool => $origin !== '',
+        ));
+    }
 }

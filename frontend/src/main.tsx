@@ -7,11 +7,17 @@ import { ErrorBoundary } from '@/components/layout/ErrorBoundary'
 import App from './App'
 import './index.css'
 
+// Basename router disamakan dengan "base" Vite. Saat build produksi aplikasi
+// dilayani dari "/app/" oleh CodeIgniter, sedangkan saat dev berjalan di "/".
+// import.meta.env.BASE_URL otomatis bernilai "/app/" (build) atau "/" (dev),
+// sehingga refresh pada sub-route seperti /app/login tetap konsisten.
+const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '')
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <BrowserRouter>
+        <BrowserRouter basename={routerBasename}>
           <App />
           <Toaster richColors position="top-center" closeButton />
         </BrowserRouter>

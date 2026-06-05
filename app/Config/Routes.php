@@ -7,6 +7,13 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Home::index');
 
+// SPA React dilayani dari "/app". Route ini menangani:
+// - aset statis (mis. /app/assets/index-xxx.js)
+// - SPA fallback saat refresh sub-route (mis. /app/login, /app/dashboard)
+// Penting agar berfungsi di `php spark serve` yang tidak membaca .htaccess.
+$routes->get('app', 'Home::app');
+$routes->get('app/(:any)', 'Home::app/$1');
+
 // Route OPTIONS catch-all untuk semua endpoint /api/* agar CORS preflight
 // dapat ditangani oleh CORS filter sebelum JwtFilter dijalankan.
 $routes->options('api/(:any)', static function () {

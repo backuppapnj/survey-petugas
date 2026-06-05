@@ -147,7 +147,7 @@ export default function SurveyPage() {
               <>
                 <div className="flex flex-col items-center gap-3">
                   <Avatar className="size-24">
-                    <AvatarImage src={petugas.foto_url} alt={petugas.nama} />
+                    <AvatarImage src={petugas.foto_url ?? undefined} alt={petugas.nama} />
                     <AvatarFallback
                       data-testid="survey-avatar-fallback"
                       className="bg-gradient-to-br from-sky-500 to-blue-600 text-xl font-semibold text-white"

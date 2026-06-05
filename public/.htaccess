@@ -14,18 +14,23 @@ Options -Indexes
     RewriteCond %{REQUEST_URI} ^/api/
     RewriteRule ^(.*)$ index.php/$1 [L,QSA]
 
-    # SPA fallback: jika file/dir tidak ada DAN bukan route /api,
-    # serve React app dari /app/index.html
-    RewriteCond %{REQUEST_URI} !^/api/
-    RewriteCond %{REQUEST_URI} !^/app/
+    # SPA fallback (sub-route di bawah /app/): jika file/dir fisik tidak ada
+    # dan bukan request ke asset (mis. /app/assets/*), kembalikan index.html
+    # agar refresh pada /app/login, /app/dashboard, dll tetap memuat SPA.
+    RewriteCond %{REQUEST_URI} ^/app/
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ /app/index.html [L]
+    RewriteRule ^ /app/index.html [L]
 
-    # Pastikan request ke direktori app/ tetap di-serve dari sana
+    # Pastikan request ke file fisik di dalam app/ tetap di-serve dari sana
     RewriteCond %{REQUEST_URI} ^/app/
     RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^ - [L]
+
+    # Path non-/app dan non-/api (mis. root "/") diteruskan ke CodeIgniter.
+    # CI4 (Home::index) akan me-redirect "/" ke "/app/" agar konsisten dengan
+    # basename React Router. JANGAN menyajikan SPA langsung di root karena
+    # Router dengan basename "/app" tidak akan cocok dengan URL "/" (blank).
 
     # Default CI4 fallback untuk route non-API yang tidak ditemukan
     RewriteCond %{REQUEST_FILENAME} !-f

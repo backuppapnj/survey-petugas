@@ -77,7 +77,7 @@ export function PetugasDetailDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <Avatar className="size-10">
-              <AvatarImage src={profil?.foto_url ?? target.foto_url} alt={target.nama} />
+              <AvatarImage src={profil?.foto_url ?? target.foto_url ?? undefined} alt={target.nama} />
               <AvatarFallback>{target.nama.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col items-start">

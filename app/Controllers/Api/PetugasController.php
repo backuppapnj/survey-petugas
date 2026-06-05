@@ -176,10 +176,15 @@ class PetugasController extends ResourceController
      */
     private function serialize(array $petugas, bool $includeStatus = false): array
     {
+        // foto_url bernilai null bila petugas belum punya foto, sehingga
+        // frontend menampilkan inisial nama (AvatarFallback) alih-alih
+        // mencoba memuat URL gambar yang tidak valid.
+        $foto = $petugas['foto'] ?? null;
+
         $out = [
             'id'         => (int) $petugas['id'],
             'nama'       => $petugas['nama'],
-            'foto_url'   => '/api/uploads/' . $petugas['foto'],
+            'foto_url'   => ($foto !== null && $foto !== '') ? '/api/uploads/' . $foto : null,
             'loket'      => $petugas['loket'],
             'unit_kerja' => $petugas['unit_kerja'],
         ];

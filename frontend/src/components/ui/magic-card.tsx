@@ -57,8 +57,11 @@ export function MagicCard(props: MagicCardProps) {
     children,
     className,
     gradientSize = 200,
-    gradientColor = "#262626",
-    gradientOpacity = 0.8,
+    // Default disesuaikan dengan tema (biru primer) agar overlay hover tidak
+    // tampak hitam pekat seperti default bawaan komponen (#262626). Memakai
+    // CSS variable --primary sehingga otomatis mengikuti mode terang/gelap.
+    gradientColor = "color-mix(in oklab, var(--primary) 22%, transparent)",
+    gradientOpacity = 0.85,
     gradientFrom = "#9E7AFF",
     gradientTo = "#FE8BBB",
     mode = "gradient",

@@ -1,7 +1,7 @@
 export interface Petugas {
   id: number
   nama: string
-  foto_url: string
+  foto_url: string | null
   loket: string
   unit_kerja: string
   is_active?: number
@@ -59,7 +59,7 @@ export interface RekapSummary {
 export interface RekapPerPetugas {
   petugas_id: number
   nama: string
-  foto_url: string
+  foto_url: string | null
   total_responden: number
   rata_rata: RataRata
 }

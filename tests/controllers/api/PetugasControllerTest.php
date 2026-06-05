@@ -33,7 +33,20 @@ final class PetugasControllerTest extends CIUnitTestCase
         $result->assertStatus(200);
         $body = json_decode($result->getJSON(), true);
         $this->assertSame('Budi Santoso', $body['nama']);
-        $this->assertStringContainsString('/api/uploads/', $body['foto_url']);
+        // Petugas hasil seeder belum punya foto, sehingga foto_url bernilai null.
+        $this->assertNull($body['foto_url']);
+    }
+
+    public function testShowPublicFotoUrlBerisiPathSaatAdaFoto(): void
+    {
+        // Set foto agar serialisasi menghasilkan URL uploads yang valid.
+        $this->db->table('petugas')->where('id', 1)->update(['foto' => 'contoh.png']);
+
+        $result = $this->call('get', '/api/petugas/1');
+
+        $result->assertStatus(200);
+        $body = json_decode($result->getJSON(), true);
+        $this->assertSame('/api/uploads/contoh.png', $body['foto_url']);
     }
 
     public function testShowPublic404UntukPetugasNonAktif(): void
