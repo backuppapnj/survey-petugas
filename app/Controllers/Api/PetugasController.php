@@ -17,11 +17,11 @@ class PetugasController extends ResourceController
     }
 
     /**
-     * GET /api/petugas/{id} — public, hanya petugas aktif.
+     * GET /api/petugas/{token} — public, hanya petugas aktif (by survey_token).
      */
-    public function show($id = null): ResponseInterface
+    public function show($token = null): ResponseInterface
     {
-        $petugas = $this->petugasModel->getActiveDetail((int) $id);
+        $petugas = $this->petugasModel->getActiveByToken((string) $token);
 
         if ($petugas === null) {
             return $this->response->setStatusCode(404)->setJSON([
@@ -199,6 +199,23 @@ class PetugasController extends ResourceController
     }
 
     /**
+     * POST /api/admin/petugas/{id}/regenerate-token — buat ulang token (QR lama mati).
+     */
+    public function regenerateToken($id = null): ResponseInterface
+    {
+        $token = $this->petugasModel->regenerateToken((int) $id);
+
+        if ($token === null) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'status' => 404,
+                'error'  => 'Petugas tidak ditemukan',
+            ]);
+        }
+
+        return $this->response->setJSON(['survey_token' => $token]);
+    }
+
+    /**
      * Helper untuk serialisasi petugas ke format API.
      */
     private function serialize(array $petugas, bool $includeStatus = false): array
@@ -216,7 +233,8 @@ class PetugasController extends ResourceController
             'unit_kerja' => $petugas['unit_kerja'],
         ];
         if ($includeStatus) {
-            $out['is_active'] = (int) $petugas['is_active'];
+            $out['is_active']    = (int) $petugas['is_active'];
+            $out['survey_token'] = $petugas['survey_token'] ?? null;
         }
         return $out;
     }
