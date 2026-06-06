@@ -22,8 +22,9 @@ final class MigrationTest extends CIUnitTestCase
         $fields = $this->db->getFieldData('petugas');
         $names  = array_column($fields, 'name');
 
+        // 'survey_token' ditambahkan pada migration token-survey (2026-06-06).
         $this->assertEqualsCanonicalizing(
-            ['id', 'nama', 'foto', 'loket', 'unit_kerja', 'is_active', 'created_at', 'updated_at'],
+            ['id', 'nama', 'foto', 'loket', 'unit_kerja', 'survey_token', 'is_active', 'created_at', 'updated_at'],
             $names,
         );
     }
