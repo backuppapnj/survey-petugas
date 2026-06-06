@@ -1,23 +1,23 @@
 import { render, screen } from '@testing-library/react'
 import { ThemeProvider } from 'next-themes'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { ThemeToggle } from './ThemeToggle'
 
 // next-themes memanggil window.matchMedia; jsdom tidak mengimplementasikannya
 beforeAll(() => {
-  Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    value: (query: string) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: () => {},
-      removeListener: () => {},
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      dispatchEvent: () => false,
-    }),
-  })
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    addListener: () => {},
+    removeListener: () => {},
+    dispatchEvent: () => false,
+  }))
+})
+afterAll(() => {
+  vi.unstubAllGlobals()
 })
 
 describe('ThemeToggle', () => {
