@@ -136,7 +136,9 @@ export function RekapTable({ data, onSelectPetugas }: Props) {
               className="bg-slate-100/80 dark:bg-slate-900/60"
             >
               <TableRow>
-                <TableHead>{sortHeader('nama', 'Petugas')}</TableHead>
+                <TableHead className="sticky left-0 z-20 bg-slate-100/80 shadow-[1px_0_0_0_var(--border)] dark:bg-slate-900/60">
+                  {sortHeader('nama', 'Petugas')}
+                </TableHead>
                 <TableHead className="text-right">
                   {sortHeader('total_responden', 'Responden', 'right')}
                 </TableHead>
@@ -173,7 +175,7 @@ export function RekapTable({ data, onSelectPetugas }: Props) {
                       data-testid={`rekap-row-${p.petugas_id}`}
                       className="transition-colors hover:bg-blue-500/8"
                     >
-                      <TableCell>
+                      <TableCell className="sticky left-0 z-10 bg-card shadow-[1px_0_0_0_var(--border)]">
                         <div className="flex items-center gap-2">
                           <Avatar className="size-8">
                             <AvatarImage src={p.foto_url ?? undefined} alt={p.nama} />
