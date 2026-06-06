@@ -1,7 +1,17 @@
 import { useRef, useState } from 'react'
 import { QRCodeCanvas } from 'qrcode.react'
-import { Check, Copy, Download, Printer } from 'lucide-react'
+import { Check, Copy, Download, Printer, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -11,26 +21,45 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { regenerateToken } from '@/lib/api'
 import type { Petugas } from '@/types'
 
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   petugas: Petugas | null
+  onTokenRegenerated?: (petugasId: number, newToken: string) => void
 }
 
-export function QrCodeDialog({ open, onOpenChange, petugas }: Props) {
+export function QrCodeDialog({ open, onOpenChange, petugas, onTokenRegenerated }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [copied, setCopied] = useState<boolean>(false)
+  const [confirmOpen, setConfirmOpen] = useState<boolean>(false)
+  const [regenerating, setRegenerating] = useState<boolean>(false)
 
   if (!petugas) return null
 
   // Sertakan base path aplikasi (import.meta.env.BASE_URL). Di produksi SPA
   // dilayani dari "/app/" oleh CodeIgniter dan React Router memakai basename
   // "/app", sehingga URL survei HARUS berprefiks /app. Tanpa ini, QR mengarah
-  // ke "/survey/:id" yang tidak punya route di backend → 404. BASE_URL selalu
+  // ke "/survey/:token" yang tidak punya route di backend → 404. BASE_URL selalu
   // diakhiri slash (Vite menjamin), jadi tidak ada risiko slash ganda.
-  const surveyUrl = `${window.location.origin}${import.meta.env.BASE_URL}survey/${petugas.id}`
+  const surveyUrl = `${window.location.origin}${import.meta.env.BASE_URL}survey/${petugas.survey_token}`
+
+  // Buat ulang token survei: panggil API, perbarui state parent, tampilkan notifikasi
+  const handleRegenerate = async () => {
+    setRegenerating(true)
+    try {
+      const { survey_token } = await regenerateToken(petugas.id)
+      onTokenRegenerated?.(petugas.id, survey_token)
+      toast.success('Token diperbarui. Cetak ulang QR; QR lama tidak berlaku lagi.')
+      setConfirmOpen(false)
+    } catch {
+      toast.error('Gagal membuat ulang token')
+    } finally {
+      setRegenerating(false)
+    }
+  }
 
   const handleDownload = () => {
     const canvas = containerRef.current?.querySelector('canvas')
@@ -160,6 +189,33 @@ export function QrCodeDialog({ open, onOpenChange, petugas }: Props) {
               Cetak
             </Button>
           </div>
+
+          {/* Tombol pemicu dialog konfirmasi buat ulang token */}
+          <div className="flex w-full">
+            <Button variant="outline" className="flex-1" onClick={() => setConfirmOpen(true)}>
+              <RefreshCw className="mr-2 size-4" />
+              Buat ulang token
+            </Button>
+          </div>
+
+          {/* Dialog konfirmasi sebelum membuat ulang token QR */}
+          <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Buat ulang token QR?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  QR lama untuk <strong>{petugas.nama}</strong> tidak akan berlaku lagi dan harus
+                  dicetak ulang. Lanjutkan?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction onClick={handleRegenerate} disabled={regenerating}>
+                  Buat ulang
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </DialogContent>
     </Dialog>

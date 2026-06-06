@@ -105,6 +105,12 @@ export default function PetugasPage() {
     }
   }
 
+  // Perbarui survey_token di state lokal setelah token berhasil dibuat ulang
+  const handleTokenRegenerated = (id: number, newToken: string) => {
+    setPetugas((prev) => prev.map((p) => (p.id === id ? { ...p, survey_token: newToken } : p)))
+    setQrTarget((prev) => (prev && prev.id === id ? { ...prev, survey_token: newToken } : prev))
+  }
+
   const handleRestore = async (p: Petugas) => {
     try {
       await restorePetugas(p.id)
@@ -361,6 +367,7 @@ export default function PetugasPage() {
         open={!!qrTarget}
         onOpenChange={(o) => !o && setQrTarget(null)}
         petugas={qrTarget}
+        onTokenRegenerated={handleTokenRegenerated}
       />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
