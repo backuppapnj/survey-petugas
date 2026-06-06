@@ -29,8 +29,8 @@ class MockResizeObserver {
 // canvas-confetti akan crash saat kita unmount komponen
 vi.mock('@/components/ui/confetti', () => ({
   Confetti: React.forwardRef<unknown, { className?: string; children?: React.ReactNode }>(
-    function MockConfetti(_props, _ref) {
-      // Stub minimal: tidak merender canvas
+    function MockConfetti() {
+      // Stub minimal: tidak merender canvas (props/ref tidak dipakai)
       return null
     },
   ),

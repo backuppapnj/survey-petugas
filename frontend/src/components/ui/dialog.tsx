@@ -105,7 +105,11 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
+        // sticky -bottom-4: footer tetap terlihat saat konten dialog di-scroll.
+        // Offset -bottom-4 mengompensasi padding bawah DialogContent (p-4) + -mb-4
+        // agar footer menempel persis ke tepi bawah dialog (tanpa celah). bg-muted
+        // opak supaya konten yang ter-scroll tidak menembus footer.
+        "sticky -bottom-4 z-10 -mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted p-4 sm:flex-row sm:justify-end",
         className
       )}
       {...props}
