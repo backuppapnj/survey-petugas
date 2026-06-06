@@ -2,12 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AlertTriangle, Bell, FileText, RefreshCw } from 'lucide-react'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
-import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
 import { BlurFade } from '@/components/ui/blur-fade'
 import { Button } from '@/components/ui/button'
-import { GridPattern } from '@/components/ui/grid-pattern'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { IkmLegend, SummaryCards } from '@/components/dashboard/SummaryCards'
 import { RadarChartCard } from '@/components/dashboard/RadarChartCard'
 import { BarChartCard } from '@/components/dashboard/BarChartCard'
@@ -219,60 +218,42 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <BlurFade delay={0.05}>
-        <div
-          data-testid="dashboard-hero"
-          className="relative overflow-hidden rounded-[28px] border border-blue-500/20 bg-gradient-to-br from-sky-500/10 via-background to-emerald-500/10 p-5 shadow-[0_20px_60px_-36px_rgba(14,165,233,0.55)]"
-        >
-          <GridPattern
-            width={56}
-            height={56}
-            strokeDasharray="4 2"
-            className="opacity-35 [mask-image:radial-gradient(circle_at_top,white,transparent_78%)]"
-          />
-          <div className="relative z-10 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">
-                <AnimatedGradientText
-                  data-testid="dashboard-title-gradient"
-                  className="from-sky-400 to-emerald-400"
-                  colorFrom="#38bdf8"
-                  colorTo="#34d399"
-                >
-                  Dashboard IKM
-                </AnimatedGradientText>
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Indeks Kepuasan Masyarakat — Survei Pelayanan Terpadu Satu Pintu
-                {lastUpdated && (
-                  <>
-                    {' · '}
-                    <span title={lastUpdated.toLocaleString('id-ID')}>
-                      Diperbarui {lastUpdated.toLocaleTimeString('id-ID')}
-                    </span>
-                  </>
-                )}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => fetchData(false)}
-                disabled={refreshing}
-                title="Muat ulang data"
-              >
-                <RefreshCw className={refreshing ? 'size-4 animate-spin' : 'size-4'} />
-                <span className="sr-only">Muat ulang</span>
-              </Button>
-              <Button variant="outline" size="sm" onClick={handlePrintPDF}>
-                <FileText className="mr-2 size-4" />
-                Cetak PDF
-              </Button>
-            </div>
-          </div>
-        </div>
-      </BlurFade>
+      <PageHeader
+        testId="dashboard-hero"
+        titleTestId="dashboard-title-gradient"
+        title="Dashboard IKM"
+        description={
+          <>
+            Indeks Kepuasan Masyarakat — Survei Pelayanan Terpadu Satu Pintu
+            {lastUpdated && (
+              <>
+                {' · '}
+                <span title={lastUpdated.toLocaleString('id-ID')}>
+                  Diperbarui {lastUpdated.toLocaleTimeString('id-ID')}
+                </span>
+              </>
+            )}
+          </>
+        }
+        actions={
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fetchData(false)}
+              disabled={refreshing}
+              title="Muat ulang data"
+            >
+              <RefreshCw className={refreshing ? 'size-4 animate-spin' : 'size-4'} />
+              <span className="sr-only">Muat ulang</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={handlePrintPDF}>
+              <FileText className="mr-2 size-4" />
+              Cetak PDF
+            </Button>
+          </>
+        }
+      />
 
       <DateFilter
         start={start}

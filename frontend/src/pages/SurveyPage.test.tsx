@@ -81,7 +81,7 @@ describe('SurveyPage', () => {
     await waitFor(() => screen.getByText('Budi Santoso'))
 
     expect(screen.getByTestId('survey-grid-pattern')).toBeInTheDocument()
-    expect(screen.getByTestId('survey-card')).toHaveClass('rounded-[32px]', 'border-blue-500/20')
+    expect(screen.getByTestId('survey-card')).toHaveClass('rounded-3xl', 'border-blue-500/20')
     expect(screen.getByTestId('survey-avatar-fallback')).toHaveClass(
       'from-sky-500',
       'to-blue-600',

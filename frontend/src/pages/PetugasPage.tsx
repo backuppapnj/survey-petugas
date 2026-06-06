@@ -52,6 +52,7 @@ import {
 } from '@/components/ui/table'
 import { PetugasFormDialog } from '@/components/petugas/PetugasFormDialog'
 import { QrCodeDialog } from '@/components/petugas/QrCodeDialog'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { deletePetugas, getAdminPetugas, restorePetugas } from '@/lib/api'
 import type { Petugas } from '@/types'
 
@@ -177,24 +178,22 @@ export default function PetugasPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Daftar Petugas</h1>
-          <p className="text-sm text-muted-foreground">
-            {totalAktif} aktif · {petugas.length - totalAktif} non-aktif · {petugas.length} total
-          </p>
-        </div>
-        <Button
-          className="app-gradient-button border border-blue-300/40 bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg shadow-blue-500/20 hover:from-sky-400 hover:to-blue-500"
-          onClick={() => {
-            setEditTarget(null)
-            setFormOpen(true)
-          }}
-        >
-          <Plus className="mr-2 size-4" />
-          Tambah Petugas
-        </Button>
-      </div>
+      <PageHeader
+        title="Daftar Petugas"
+        description={`${totalAktif} aktif · ${petugas.length - totalAktif} non-aktif · ${petugas.length} total`}
+        actions={
+          <Button
+            className="app-gradient-button border border-blue-300/40 bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg shadow-blue-500/20 hover:from-sky-400 hover:to-blue-500"
+            onClick={() => {
+              setEditTarget(null)
+              setFormOpen(true)
+            }}
+          >
+            <Plus className="mr-2 size-4" />
+            Tambah Petugas
+          </Button>
+        }
+      />
 
       {/* Toolbar */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center">
@@ -394,7 +393,7 @@ function EmptyState({
   onAdd: () => void
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-12 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed p-12 text-center">
       <div
         data-testid="petugas-empty-icon"
         className="rounded-full bg-blue-500/10 p-3"

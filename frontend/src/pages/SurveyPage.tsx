@@ -123,7 +123,7 @@ export default function SurveyPage() {
       <BlurFade delay={0.1}>
         <Card
           data-testid="survey-card"
-          className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-blue-500/20 bg-card/94 shadow-[0_30px_80px_-44px_rgba(37,99,235,0.6)] backdrop-blur-sm"
+          className="relative w-full max-w-md overflow-hidden rounded-3xl border border-blue-500/20 bg-card/95 shadow-[0_30px_80px_-44px_rgba(37,99,235,0.6)] backdrop-blur-sm"
         >
           <div className="absolute inset-x-6 top-0 h-1.5 rounded-full bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-300 opacity-90" />
           <BorderBeam size={250} duration={12} colorFrom="#38bdf8" colorTo="#2563eb" />

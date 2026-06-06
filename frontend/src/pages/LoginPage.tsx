@@ -50,7 +50,7 @@ export default function LoginPage() {
           'text-sky-400/40 [mask-image:radial-gradient(480px_circle_at_center,white,transparent)]',
         )}
       />
-      <Card className="relative w-full max-w-md overflow-hidden rounded-[28px] border border-blue-500/20 bg-card/92 px-2 py-2 shadow-[0_28px_80px_-42px_rgba(37,99,235,0.55)] backdrop-blur-sm">
+      <Card className="relative w-full max-w-md overflow-hidden rounded-3xl border border-blue-500/20 bg-card/95 px-2 py-2 shadow-[0_28px_80px_-42px_rgba(37,99,235,0.55)] backdrop-blur-sm">
         <div
           data-testid="login-card-shimmer"
           className="absolute inset-x-6 top-0 h-1.5 rounded-full bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-300 opacity-90"
