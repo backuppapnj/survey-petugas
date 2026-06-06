@@ -105,3 +105,45 @@ export interface AnomaliResponse {
   harian: { antrean_tersedia: boolean; items: AnomaliHarianItem[] }
   petugas_outlier: { median: number; items: AnomaliOutlierItem[] }
 }
+
+/**
+ * Pengaturan aplikasi yang dapat dikonfigurasi administrator (disimpan di
+ * tabel `settings` backend). Nilai publik dimuat tanpa autentikasi; nilai
+ * privat (performance) hanya tersedia setelah admin login.
+ */
+export interface AppSettings {
+  // Branding
+  app_title: string
+  app_subtitle: string
+  sidebar_brand: string
+  sidebar_subtitle: string
+  login_help_text: string
+  qr_print_title: string
+  qr_print_instruction: string
+  qr_print_cta: string
+  // Kiosk
+  kiosk_reset_timeout: number
+  saran_max_length: number
+  // Performance (privat)
+  dashboard_poll_interval: number
+  petugas_page_size: number
+  dashboard_default_range_days: number
+  // IKM
+  ikm_label_kecepatan: string
+  ikm_label_keramahan: string
+  ikm_label_informasi: string
+  ikm_label_kenyamanan: string
+  ikm_threshold_a: number
+  ikm_threshold_b: number
+  ikm_threshold_c: number
+}
+
+/** Metadata pengaturan untuk UI admin (GET /api/admin/settings). */
+export interface SettingMeta {
+  key: keyof AppSettings
+  value: string | number | boolean
+  type: 'string' | 'int' | 'float' | 'bool' | 'json'
+  category: string
+  label: string
+  is_public: boolean
+}

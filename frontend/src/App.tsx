@@ -10,6 +10,7 @@ import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 // hanya dipakai dashboard. Chunk dimuat saat rute admin diakses.
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'))
 const PetugasPage = lazy(() => import('@/pages/PetugasPage'))
+const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 
 // Fallback ringan saat chunk halaman sedang diunduh.
@@ -43,6 +44,7 @@ export default function App() {
         >
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/petugas" element={<PetugasPage />} />
+          <Route path="/pengaturan" element={<SettingsPage />} />
         </Route>
 
         {/* 404 informatif */}

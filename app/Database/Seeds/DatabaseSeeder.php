@@ -10,5 +10,6 @@ class DatabaseSeeder extends Seeder
     {
         $this->call('AdminSeeder');
         $this->call('PetugasSeeder');
+        $this->call('SettingsSeeder');
     }
 }

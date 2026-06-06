@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { NILAI_PERSEPSI, UNSUR_LABEL } from '@/lib/ikm'
+import { NILAI_PERSEPSI } from '@/lib/ikm'
+import { useIkmConfig } from '@/hooks/useIkmConfig'
 import type { SurveiRecord } from '@/types'
 
 interface Props {
@@ -10,28 +11,24 @@ interface Props {
 const ASPEK = [
   {
     key: 'kecepatan',
-    label: UNSUR_LABEL.kecepatan,
     color: 'var(--chart-1)',
     gradientFrom: 'rgba(14, 165, 233, 0.95)',
     gradientTo: 'rgba(37, 99, 235, 0.82)',
   },
   {
     key: 'keramahan',
-    label: UNSUR_LABEL.keramahan,
     color: 'var(--chart-2)',
     gradientFrom: 'rgba(16, 185, 129, 0.95)',
     gradientTo: 'rgba(13, 148, 136, 0.82)',
   },
   {
     key: 'informasi',
-    label: UNSUR_LABEL.informasi,
     color: 'var(--chart-3)',
     gradientFrom: 'rgba(59, 130, 246, 0.95)',
     gradientTo: 'rgba(14, 165, 233, 0.82)',
   },
   {
     key: 'kenyamanan',
-    label: UNSUR_LABEL.kenyamanan,
     color: 'var(--chart-4)',
     gradientFrom: 'rgba(45, 212, 191, 0.95)',
     gradientTo: 'rgba(16, 185, 129, 0.82)',
@@ -39,8 +36,10 @@ const ASPEK = [
 ] as const
 
 export function RatingDistribution({ data }: Props) {
+  const { labels } = useIkmConfig()
   const stats = useMemo(() => {
-    return ASPEK.map(({ key, label, color, gradientFrom, gradientTo }) => {
+    return ASPEK.map(({ key, color, gradientFrom, gradientTo }) => {
+      const label = labels[key]
       const buckets = [0, 0, 0, 0] // index 0 -> nilai 1 (Tidak Baik), dst
       data.forEach((r) => {
         const v = r[key]
@@ -49,7 +48,7 @@ export function RatingDistribution({ data }: Props) {
       const total = buckets.reduce((s, n) => s + n, 0)
       return { key, label, color, gradientFrom, gradientTo, buckets, total }
     })
-  }, [data])
+  }, [data, labels])
 
   const grandTotal = data.length
 

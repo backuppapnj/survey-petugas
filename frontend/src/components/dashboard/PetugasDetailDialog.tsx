@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { categorizeIkm, hitungIkm, UNSUR_LABEL } from '@/lib/ikm'
+import { categorizeIkm, hitungIkm } from '@/lib/ikm'
+import { useIkmConfig } from '@/hooks/useIkmConfig'
 import { cn } from '@/lib/utils'
 import type { Petugas, RekapPerPetugas, SurveiRecord } from '@/types'
 
@@ -34,10 +35,10 @@ const formatTanggal = (iso: string): string => {
 }
 
 const ASPEK = [
-  { key: 'kecepatan', label: UNSUR_LABEL.kecepatan, color: 'var(--chart-1)' },
-  { key: 'keramahan', label: UNSUR_LABEL.keramahan, color: 'var(--chart-2)' },
-  { key: 'informasi', label: UNSUR_LABEL.informasi, color: 'var(--chart-3)' },
-  { key: 'kenyamanan', label: UNSUR_LABEL.kenyamanan, color: 'var(--chart-4)' },
+  { key: 'kecepatan', color: 'var(--chart-1)' },
+  { key: 'keramahan', color: 'var(--chart-2)' },
+  { key: 'informasi', color: 'var(--chart-3)' },
+  { key: 'kenyamanan', color: 'var(--chart-4)' },
 ] as const
 
 export function PetugasDetailDialog({
@@ -48,6 +49,7 @@ export function PetugasDetailDialog({
   semua,
   petugas,
 }: Props) {
+  const { labels, thresholds } = useIkmConfig()
   const target = useMemo(
     () => perPetugas.find((p) => p.petugas_id === petugasId),
     [perPetugas, petugasId],
@@ -69,7 +71,7 @@ export function PetugasDetailDialog({
   if (!target) return null
 
   const ikm = hitungIkm(target.rata_rata)
-  const kategori = categorizeIkm(ikm)
+  const kategori = categorizeIkm(ikm, thresholds)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -109,12 +111,12 @@ export function PetugasDetailDialog({
 
         {/* Aspek bars */}
         <div className="grid grid-cols-2 gap-3">
-          {ASPEK.map(({ key, label, color }) => {
+          {ASPEK.map(({ key, color }) => {
             const v = target.rata_rata[key]
             return (
               <div key={key} className="rounded-md border p-3">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium">{label}</span>
+                  <span className="font-medium">{labels[key]}</span>
                   <span className="tabular-nums">{v.toFixed(2)} / 4</span>
                 </div>
                 <div className="mt-2 h-1.5 rounded-full bg-muted">

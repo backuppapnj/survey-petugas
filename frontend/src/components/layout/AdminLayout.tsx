@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, LogOut, ShieldCheck, Users } from 'lucide-react'
+import { LayoutDashboard, LogOut, Settings, ShieldCheck, Users } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,17 +28,20 @@ import {
 } from '@/components/ui/sidebar'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { useAuth } from '@/hooks/useAuth'
+import { useSettings } from '@/hooks/useSettings'
 import { cn } from '@/lib/utils'
 
 const menuItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
   { title: 'Petugas', url: '/petugas', icon: Users },
+  { title: 'Pengaturan', url: '/pengaturan', icon: Settings },
 ]
 
 export function AdminLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const { admin, logout } = useAuth()
+  const { settings } = useSettings()
   const [logoutOpen, setLogoutOpen] = useState<boolean>(false)
 
   const currentPage = menuItems.find((m) => m.url === location.pathname)
@@ -59,8 +62,8 @@ export function AdminLayout() {
               />
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-sm font-semibold">Survei PTSP</span>
-              <span className="text-xs text-muted-foreground">Admin Panel</span>
+              <span className="text-sm font-semibold">{settings.sidebar_brand}</span>
+              <span className="text-xs text-muted-foreground">{settings.sidebar_subtitle}</span>
             </div>
           </div>
         </SidebarHeader>

@@ -17,23 +17,28 @@ import { RatingDistribution } from '@/components/dashboard/RatingDistribution'
 import { PetugasDetailDialog } from '@/components/dashboard/PetugasDetailDialog'
 import { AnomaliPanel } from '@/components/dashboard/AnomaliPanel'
 import { getAdminPetugas, getAnomali, getExportUrl, getRekap } from '@/lib/api'
-import { categorizeIkm, hitungIkm } from '@/lib/ikm'
+import { categorizeIkm, hitungIkm, type IkmThresholds } from '@/lib/ikm'
+import { useSettings } from '@/hooks/useSettings'
+import { useIkmConfig } from '@/hooks/useIkmConfig'
 import type { AnomaliResponse, Petugas, RekapResponse, SurveiRecord } from '@/types'
 
 const fmt = (d: Date): string =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
-const last30Days = (): { start: string; end: string } => {
+/** Rentang tanggal n hari terakhir (termasuk hari ini). */
+const lastNDays = (n: number): { start: string; end: string } => {
   const end = new Date()
   const start = new Date()
-  start.setDate(end.getDate() - 29)
+  start.setDate(end.getDate() - (Math.max(1, n) - 1))
   return { start: fmt(start), end: fmt(end) }
 }
 
 const ALL_UNIT = '__all__'
 
 export default function DashboardPage() {
-  const init = last30Days()
+  const { settings } = useSettings()
+  const { thresholds } = useIkmConfig()
+  const init = lastNDays(settings.dashboard_default_range_days)
   const [start, setStart] = useState<string>(init.start)
   const [end, setEnd] = useState<string>(init.end)
   const [unitKerja, setUnitKerja] = useState<string>(ALL_UNIT)
@@ -101,12 +106,13 @@ export default function DashboardPage() {
     fetchData(true)
   }, [fetchData, hasValidDateRange])
 
-  // P3-24: polling ringan tiap 60 detik untuk menangkap data baru
+  // P3-24: polling ringan untuk menangkap data baru; interval dapat
+  // dikonfigurasi administrator (settings.dashboard_poll_interval).
   useEffect(() => {
     if (!hasValidDateRange) return
-    const id = setInterval(() => fetchData(false), 60_000)
+    const id = setInterval(() => fetchData(false), settings.dashboard_poll_interval)
     return () => clearInterval(id)
-  }, [fetchData, hasValidDateRange])
+  }, [fetchData, hasValidDateRange, settings.dashboard_poll_interval])
 
   // Ambil data anomali terpisah (non-blocking) agar timeout antrean tidak
   // menahan render dashboard utama. Race terbaru dimenangkan via requestRef.
@@ -212,7 +218,7 @@ export default function DashboardPage() {
   }
 
   const summary = filteredRekap?.summary
-  const kategori = summary ? categorizeIkm(summary.ikm) : null
+  const kategori = summary ? categorizeIkm(summary.ikm, thresholds) : null
   const semua: SurveiRecord[] = filteredRekap?.semua ?? []
   const hasVisibleSummary = Boolean(filteredRekap && summary)
   const visibleSummary = hasVisibleSummary ? summary : null
@@ -427,6 +433,7 @@ export default function DashboardPage() {
               end={end}
               unitKerja={unitKerja === ALL_UNIT ? 'Semua Unit Kerja' : unitKerja}
               rekap={visibleRekap!}
+              thresholds={thresholds}
             />
           )}
         </>
@@ -474,13 +481,15 @@ function PrintReport({
   end,
   unitKerja,
   rekap,
+  thresholds,
 }: {
   start: string
   end: string
   unitKerja: string
   rekap: RekapResponse
+  thresholds: IkmThresholds
 }) {
-  const k = categorizeIkm(rekap.summary.ikm)
+  const k = categorizeIkm(rekap.summary.ikm, thresholds)
   return (
     <div className="hidden print:block">
       <h1 className="text-2xl font-bold">Laporan Indeks Kepuasan Masyarakat</h1>
@@ -510,7 +519,7 @@ function PrintReport({
         <tbody>
           {rekap.per_petugas.map((p) => {
             const ikm = hitungIkm(p.rata_rata)
-            const kk = categorizeIkm(ikm)
+            const kk = categorizeIkm(ikm, thresholds)
             return (
               <tr key={p.petugas_id}>
                 <td className="border p-1">{p.nama}</td>

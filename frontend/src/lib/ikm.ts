@@ -19,8 +19,24 @@ export type IkmCategory = {
   bg: string
 }
 
-export function categorizeIkm(ikm: number): IkmCategory {
-  if (ikm >= 88.31)
+/** Ambang batas mutu IKM (default PermenPAN-RB 14/2017 Lampiran III). */
+export interface IkmThresholds {
+  a: number
+  b: number
+  c: number
+}
+
+export const DEFAULT_IKM_THRESHOLDS: IkmThresholds = { a: 88.31, b: 76.61, c: 65.0 }
+
+/**
+ * Kategorikan nilai IKM ke grade A/B/C/D. Ambang batas dapat dikustomisasi
+ * administrator; default mengikuti PermenPAN-RB 14/2017.
+ */
+export function categorizeIkm(
+  ikm: number,
+  thresholds: IkmThresholds = DEFAULT_IKM_THRESHOLDS,
+): IkmCategory {
+  if (ikm >= thresholds.a)
     return {
       grade: 'A',
       mutu: 'Sangat Baik',
@@ -28,7 +44,7 @@ export function categorizeIkm(ikm: number): IkmCategory {
       color: 'text-emerald-600 dark:text-emerald-400',
       bg: 'bg-emerald-100 dark:bg-emerald-950/40',
     }
-  if (ikm >= 76.61)
+  if (ikm >= thresholds.b)
     return {
       grade: 'B',
       mutu: 'Baik',
@@ -36,7 +52,7 @@ export function categorizeIkm(ikm: number): IkmCategory {
       color: 'text-blue-600 dark:text-blue-400',
       bg: 'bg-blue-100 dark:bg-blue-950/40',
     }
-  if (ikm >= 65.0)
+  if (ikm >= thresholds.c)
     return {
       grade: 'C',
       mutu: 'Kurang Baik',

@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { regenerateToken } from '@/lib/api'
+import { useSettings } from '@/hooks/useSettings'
 import type { Petugas } from '@/types'
 
 interface Props {
@@ -32,6 +33,7 @@ interface Props {
 }
 
 export function QrCodeDialog({ open, onOpenChange, petugas, onTokenRegenerated }: Props) {
+  const { settings } = useSettings()
   const containerRef = useRef<HTMLDivElement>(null)
   const [copied, setCopied] = useState<boolean>(false)
   const [confirmOpen, setConfirmOpen] = useState<boolean>(false)
@@ -87,6 +89,15 @@ export function QrCodeDialog({ open, onOpenChange, petugas, onTokenRegenerated }
     if (!canvas) return
     const dataUrl = canvas.toDataURL('image/png')
 
+    // Escape teks pengaturan & data petugas sebelum disisipkan ke HTML cetak
+    // untuk mencegah HTML injection lewat nilai yang dapat diubah pengguna.
+    const esc = (s: string) =>
+      s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+
     const printWin = window.open('', '_blank', 'width=600,height=800')
     if (!printWin) {
       toast.error('Browser memblokir pop-up. Izinkan pop-up untuk mencetak.')
@@ -129,12 +140,12 @@ export function QrCodeDialog({ open, onOpenChange, petugas, onTokenRegenerated }
         </head>
         <body>
           <div class="frame">
-            <h1>Survei Kepuasan Pelayanan</h1>
-            <p class="sub">Pindai QR code di bawah ini</p>
+            <h1>${esc(settings.qr_print_title)}</h1>
+            <p class="sub">${esc(settings.qr_print_instruction)}</p>
             <img src="${dataUrl}" alt="QR Code" />
-            <div class="name">${petugas.nama}</div>
-            <div class="loket">${petugas.loket} · ${petugas.unit_kerja}</div>
-            <p class="cta">Pendapat Anda membantu kami melayani lebih baik.</p>
+            <div class="name">${esc(petugas.nama)}</div>
+            <div class="loket">${esc(petugas.loket)} · ${esc(petugas.unit_kerja)}</div>
+            <p class="cta">${esc(settings.qr_print_cta)}</p>
             <p class="url">${surveyUrl}</p>
           </div>
           <script>

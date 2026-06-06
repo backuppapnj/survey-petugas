@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/sonner'
 import { ErrorBoundary } from '@/components/layout/ErrorBoundary'
+import { SettingsProvider } from '@/components/SettingsProvider'
 import App from './App'
 import './index.css'
 
@@ -17,10 +18,12 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <BrowserRouter basename={routerBasename}>
-          <App />
-          <Toaster richColors position="top-center" closeButton />
-        </BrowserRouter>
+        <SettingsProvider>
+          <BrowserRouter basename={routerBasename}>
+            <App />
+            <Toaster richColors position="top-center" closeButton />
+          </BrowserRouter>
+        </SettingsProvider>
       </ThemeProvider>
     </ErrorBoundary>
   </StrictMode>,

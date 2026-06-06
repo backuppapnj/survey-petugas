@@ -10,12 +10,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/hooks/useAuth'
+import { useSettings } from '@/hooks/useSettings'
 import type { ApiError } from '@/types'
 import { cn } from '@/lib/utils'
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const { login } = useAuth()
+  const { settings } = useSettings()
   const [username, setUsername] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [showPassword, setShowPassword] = useState<boolean>(false)
@@ -70,12 +72,10 @@ export default function LoginPage() {
                 colorTo="#2563eb"
                 className="font-semibold"
               >
-                Survei Kepuasan PTSP
+                {settings.app_title}
               </AnimatedGradientText>
             </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Masuk ke panel administrator untuk mengelola survei
-            </p>
+            <p className="text-sm text-muted-foreground">{settings.app_subtitle}</p>
           </div>
         </CardHeader>
         <CardContent className="px-6 pt-2 pb-6">
@@ -166,7 +166,7 @@ export default function LoginPage() {
             </Button>
             <div className="border-t border-border/60 pt-4">
               <p className="text-center text-xs text-muted-foreground">
-                Lupa password? Hubungi pengelola sistem.
+                {settings.login_help_text}
               </p>
             </div>
           </form>

@@ -7,6 +7,8 @@ import type {
   RekapResponse,
   ApiError,
   AnomaliResponse,
+  AppSettings,
+  SettingMeta,
 } from '@/types'
 
 const api = axios.create({
@@ -95,6 +97,25 @@ export async function getAnomali(start: string, end: string): Promise<AnomaliRes
 
 export function getExportUrl(start: string, end: string): string {
   return `/api/admin/survei/export?start=${start}&end=${end}`
+}
+
+/** Ambil pengaturan publik (branding, kiosk, label IKM) — tanpa autentikasi. */
+export async function getPublicSettings(): Promise<Partial<AppSettings>> {
+  return (await api.get<Partial<AppSettings>>('/settings/public')).data
+}
+
+/** Ambil seluruh pengaturan + metadata (admin). */
+export async function getAdminSettings(): Promise<SettingMeta[]> {
+  return (await api.get<SettingMeta[]>('/admin/settings')).data
+}
+
+/** Perbarui banyak pengaturan sekaligus (admin). */
+export async function updateSettings(
+  settings: Partial<Record<keyof AppSettings, string | number | boolean>>,
+): Promise<{ updated: string[]; settings: SettingMeta[] }> {
+  return (
+    await api.put<{ updated: string[]; settings: SettingMeta[] }>('/admin/settings', { settings })
+  ).data
 }
 
 export default api

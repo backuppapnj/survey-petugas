@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { categorizeIkm, hitungIkm } from '@/lib/ikm'
+import { useIkmConfig } from '@/hooks/useIkmConfig'
 import { cn } from '@/lib/utils'
 import type { RekapPerPetugas } from '@/types'
 
@@ -34,6 +35,7 @@ type SortKey =
 type SortDir = 'asc' | 'desc'
 
 export function RekapTable({ data, onSelectPetugas }: Props) {
+  const { thresholds } = useIkmConfig()
   const [search, setSearch] = useState<string>('')
   const [sortKey, setSortKey] = useState<SortKey>('ikm')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
@@ -168,7 +170,7 @@ export function RekapTable({ data, onSelectPetugas }: Props) {
                 </TableRow>
               ) : (
                 filtered.map((p) => {
-                  const kategori = categorizeIkm(p.ikm)
+                  const kategori = categorizeIkm(p.ikm, thresholds)
                   return (
                     <TableRow
                       key={p.petugas_id}

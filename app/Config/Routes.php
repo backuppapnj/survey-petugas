@@ -27,6 +27,8 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function ($
     // survei otomatis tanpa memblokir antrean pengisi sah di kantor.
     $routes->post('survei', 'SurveiController::submit', ['filter' => 'ratelimit:survey']);
     $routes->get('uploads/(:any)', 'UploadsController::show/$1');
+    // Pengaturan publik (branding, kiosk, label IKM) — tanpa autentikasi.
+    $routes->get('settings/public', 'SettingsController::publicSettings');
 
     $routes->group('admin', ['filter' => 'jwt'], static function ($routes) {
         // Logout = cabut token saat ini (revocation). Harus di balik JwtFilter
@@ -41,5 +43,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function ($
         $routes->get('survei/rekap', 'SurveiController::rekap');
         $routes->get('survei/export', 'ExportController::excel');
         $routes->get('anomali', 'AnomaliController::index');
+        $routes->get('settings', 'SettingsController::index');
+        $routes->put('settings', 'SettingsController::updateBatch');
     });
 });

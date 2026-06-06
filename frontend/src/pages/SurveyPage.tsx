@@ -13,27 +13,30 @@ import { BlurFade } from '@/components/ui/blur-fade'
 import { Confetti, type ConfettiRef } from '@/components/ui/confetti'
 import { ShimmerButton } from '@/components/ui/shimmer-button'
 import { RatingScale } from '@/components/survey/RatingScale'
-import { UNSUR_LABEL } from '@/lib/ikm'
 import { getPetugas, submitSurvei } from '@/lib/api'
+import { useSettings } from '@/hooks/useSettings'
 import type { Petugas } from '@/types'
 import { cn } from '@/lib/utils'
 
 type Ratings = { kecepatan: number; keramahan: number; informasi: number; kenyamanan: number }
 
-// Label unsur resmi PermenPAN-RB 14/2017 diambil dari UNSUR_LABEL agar konsisten
-const ASPEK: Array<{ key: keyof Ratings; label: string }> = [
-  { key: 'kecepatan', label: UNSUR_LABEL.kecepatan },
-  { key: 'keramahan', label: UNSUR_LABEL.keramahan },
-  { key: 'informasi', label: UNSUR_LABEL.informasi },
-  { key: 'kenyamanan', label: UNSUR_LABEL.kenyamanan },
-]
-
-const SARAN_MAX = 1000
 const EMPTY_RATINGS: Ratings = { kecepatan: 0, keramahan: 0, informasi: 0, kenyamanan: 0 }
 
 export default function SurveyPage() {
   // Ambil token (16-karakter hex) dari parameter rute /survey/:token
   const { token } = useParams<{ token: string }>()
+  const { settings } = useSettings()
+
+  // Label unsur & batas saran/timeout kiosk diambil dari pengaturan (admin-config)
+  // dengan fallback default via SettingsProvider.
+  const ASPEK: Array<{ key: keyof Ratings; label: string }> = [
+    { key: 'kecepatan', label: settings.ikm_label_kecepatan },
+    { key: 'keramahan', label: settings.ikm_label_keramahan },
+    { key: 'informasi', label: settings.ikm_label_informasi },
+    { key: 'kenyamanan', label: settings.ikm_label_kenyamanan },
+  ]
+  const SARAN_MAX = settings.saran_max_length
+
   const [petugas, setPetugas] = useState<Petugas | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [notFound, setNotFound] = useState<boolean>(false)
@@ -89,11 +92,11 @@ export default function SurveyPage() {
       setSuccess(true)
       confettiRef.current?.fire?.({})
       toast.success('Terima kasih atas penilaian Anda')
-      // Auto-reset 6 detik untuk mode kiosk; cukup waktu untuk membaca pesan
+      // Auto-reset mode kiosk; durasi dapat dikonfigurasi administrator.
       resetTimeoutRef.current = setTimeout(() => {
         resetTimeoutRef.current = null
         reset()
-      }, 6000)
+      }, settings.kiosk_reset_timeout)
     } catch {
       toast.error('Gagal mengirim survei. Silakan coba lagi.')
     } finally {

@@ -54,15 +54,17 @@ import { PetugasFormDialog } from '@/components/petugas/PetugasFormDialog'
 import { QrCodeDialog } from '@/components/petugas/QrCodeDialog'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { deletePetugas, getAdminPetugas, restorePetugas } from '@/lib/api'
+import { useSettings } from '@/hooks/useSettings'
 import type { Petugas } from '@/types'
 
 type StatusFilter = 'all' | 'active' | 'inactive'
 type SortKey = 'nama' | 'loket' | 'unit_kerja'
 type SortDir = 'asc' | 'desc'
 
-const PAGE_SIZE = 10
-
 export default function PetugasPage() {
+  const { settings } = useSettings()
+  const PAGE_SIZE = settings.petugas_page_size
+
   const [petugas, setPetugas] = useState<Petugas[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [formOpen, setFormOpen] = useState<boolean>(false)

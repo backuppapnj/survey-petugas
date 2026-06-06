@@ -3,13 +3,13 @@ import { MagicCard } from '@/components/ui/magic-card'
 import { NumberTicker } from '@/components/ui/number-ticker'
 import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar'
 import { Badge } from '@/components/ui/badge'
-import { categorizeIkm, UNSUR_LABEL } from '@/lib/ikm'
+import { categorizeIkm } from '@/lib/ikm'
+import { useIkmConfig } from '@/hooks/useIkmConfig'
 import { cn } from '@/lib/utils'
 import type { RekapSummary } from '@/types'
 
 const ASPEK_META: Array<{
   key: 'kecepatan' | 'keramahan' | 'informasi' | 'kenyamanan'
-  label: string
   color: string
   borderClass: string
   gradientFrom: string
@@ -18,7 +18,6 @@ const ASPEK_META: Array<{
 }> = [
   {
     key: 'kecepatan',
-    label: UNSUR_LABEL.kecepatan,
     color: 'var(--chart-1)',
     borderClass: 'border-sky-400/80',
     gradientFrom: 'rgba(14, 165, 233, 0.95)',
@@ -27,7 +26,6 @@ const ASPEK_META: Array<{
   },
   {
     key: 'keramahan',
-    label: UNSUR_LABEL.keramahan,
     color: 'var(--chart-2)',
     borderClass: 'border-emerald-400/80',
     gradientFrom: 'rgba(16, 185, 129, 0.95)',
@@ -36,7 +34,6 @@ const ASPEK_META: Array<{
   },
   {
     key: 'informasi',
-    label: UNSUR_LABEL.informasi,
     color: 'var(--chart-3)',
     borderClass: 'border-blue-400/80',
     gradientFrom: 'rgba(59, 130, 246, 0.95)',
@@ -45,7 +42,6 @@ const ASPEK_META: Array<{
   },
   {
     key: 'kenyamanan',
-    label: UNSUR_LABEL.kenyamanan,
     color: 'var(--chart-4)',
     borderClass: 'border-teal-300/80',
     gradientFrom: 'rgba(45, 212, 191, 0.95)',
@@ -55,7 +51,8 @@ const ASPEK_META: Array<{
 ]
 
 export function SummaryCards({ summary }: { summary: RekapSummary }) {
-  const kategori = categorizeIkm(summary.ikm)
+  const { labels, thresholds } = useIkmConfig()
+  const kategori = categorizeIkm(summary.ikm, thresholds)
   const ikmGaugeColor = 'hsl(142,71%,45%)'
 
   return (
@@ -145,7 +142,7 @@ export function SummaryCards({ summary }: { summary: RekapSummary }) {
 
       {/* Baris 2: 4 aspek */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {ASPEK_META.map(({ key, label, color, borderClass, gradientFrom, gradientTo, labelClass }) => (
+        {ASPEK_META.map(({ key, color, borderClass, gradientFrom, gradientTo, labelClass }) => (
           <div
             key={key}
             data-testid={`summary-aspek-${key}`}
@@ -161,9 +158,7 @@ export function SummaryCards({ summary }: { summary: RekapSummary }) {
                   style={{ background: color }}
                   aria-hidden
                 />
-                <p className={cn('text-xs font-medium', labelClass)}>
-                  {label}
-                </p>
+                <p className={cn('text-xs font-medium', labelClass)}>{labels[key]}</p>
               </div>
               <div className="mt-2 flex items-baseline gap-1">
                 <p className="text-2xl font-bold tabular-nums">
@@ -189,21 +184,29 @@ export function SummaryCards({ summary }: { summary: RekapSummary }) {
 }
 
 export function IkmLegend() {
+  const { thresholds } = useIkmConfig()
+  // Format angka mengikuti lokal Indonesia (koma desimal).
+  const f = (n: number) => n.toLocaleString('id-ID', { minimumFractionDigits: 2 })
+  // Batas atas tiap grade = ambang grade berikut dikurangi 0,01.
+  const dMax = (thresholds.c - 0.01).toLocaleString('id-ID', { minimumFractionDigits: 2 })
+  const cMax = (thresholds.b - 0.01).toLocaleString('id-ID', { minimumFractionDigits: 2 })
+  const bMax = (thresholds.a - 0.01).toLocaleString('id-ID', { minimumFractionDigits: 2 })
+
   return (
     <div className="flex flex-wrap gap-2 text-xs">
       <Gauge className="size-4 text-muted-foreground" />
       <span className="text-muted-foreground">Skala IKM:</span>
       <Badge variant="outline" className="bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
-        D · 25–64,99
+        D · 25–{dMax}
       </Badge>
       <Badge variant="outline" className="bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-        C · 65–76,60
+        C · {f(thresholds.c)}–{cMax}
       </Badge>
       <Badge variant="outline" className="bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
-        B · 76,61–88,30
+        B · {f(thresholds.b)}–{bMax}
       </Badge>
       <Badge variant="outline" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-        A · 88,31–100
+        A · {f(thresholds.a)}–100
       </Badge>
     </div>
   )
