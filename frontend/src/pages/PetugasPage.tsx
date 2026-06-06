@@ -280,7 +280,7 @@ export default function PetugasPage() {
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" aria-label={`Aksi untuk ${p.nama}`}>
+                          <Button variant="ghost" size="icon" aria-label={`Aksi untuk ${p.nama}`} className="tap-target">
                             <MoreHorizontal className="size-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -334,6 +334,7 @@ export default function PetugasPage() {
                   size="sm"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={safePage === 1}
+                  className="tap-target"
                 >
                   <ChevronLeft className="size-4" />
                   <span className="sr-only">Sebelumnya</span>
@@ -346,6 +347,7 @@ export default function PetugasPage() {
                   size="sm"
                   onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
                   disabled={safePage === pageCount}
+                  className="tap-target"
                 >
                   <ChevronRight className="size-4" />
                   <span className="sr-only">Selanjutnya</span>

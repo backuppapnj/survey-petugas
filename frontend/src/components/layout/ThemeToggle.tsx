@@ -30,7 +30,7 @@ export function ThemeToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Ubah tema">
+        <Button variant="ghost" size="icon" aria-label="Ubah tema" className="tap-target">
           <Icon className="size-4" />
         </Button>
       </DropdownMenuTrigger>

@@ -74,6 +74,11 @@ describe('LoginPage', () => {
     })
   })
 
+  it('tombol tampilkan password punya area sentuh nyaman (tap-target)', () => {
+    renderPage()
+    expect(screen.getByRole('button', { name: /tampilkan kata sandi/i })).toHaveClass('tap-target')
+  })
+
   it('mengizinkan tombol tampilkan password diakses lewat keyboard', async () => {
     renderPage()
     const user = userEvent.setup()
@@ -84,5 +89,12 @@ describe('LoginPage', () => {
     await user.tab()
 
     expect(toggleButton).toHaveFocus()
+  })
+
+  it('kontainer halaman memakai min-h-dvh (mobile address-bar friendly)', () => {
+    const { container } = renderPage()
+    const root = container.firstChild as HTMLElement
+    expect(root.className).toContain('min-h-dvh')
+    expect(root.className).not.toContain('min-h-screen')
   })
 })

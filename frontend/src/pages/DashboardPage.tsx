@@ -243,6 +243,7 @@ export default function DashboardPage() {
               onClick={() => fetchData(false)}
               disabled={refreshing}
               title="Muat ulang data"
+              className="tap-target"
             >
               <RefreshCw className={refreshing ? 'size-4 animate-spin' : 'size-4'} />
               <span className="sr-only">Muat ulang</span>

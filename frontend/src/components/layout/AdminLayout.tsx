@@ -126,12 +126,15 @@ export function AdminLayout() {
         </SidebarFooter>
       </Sidebar>
 
-      <main className="flex flex-1 flex-col">
+      {/* min-w-0: izinkan flex item menyusut di bawah min-content anak (mis. TabsList
+          whitespace-nowrap / tabel lebar) agar konten meng-clamp ke lebar viewport dan
+          memakai overflow-x-auto internal — bukan memicu scroll horizontal seluruh halaman. */}
+      <main className="flex min-w-0 flex-1 flex-col">
         <header
           data-testid="admin-layout-header"
           className="sticky top-0 z-10 flex items-center gap-3 border-b border-white/8 bg-background/80 px-4 py-3 backdrop-blur-md"
         >
-          <SidebarTrigger />
+          <SidebarTrigger className="tap-target" />
           <div className="flex-1">
             <h2 className="text-sm font-medium text-muted-foreground">
               {currentPage?.title ?? 'Admin'}

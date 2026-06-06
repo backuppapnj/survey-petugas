@@ -15,7 +15,7 @@ const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 // Fallback ringan saat chunk halaman sedang diunduh.
 function PageFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+    <div className="flex min-h-dvh items-center justify-center text-muted-foreground">
       Memuat…
     </div>
   )

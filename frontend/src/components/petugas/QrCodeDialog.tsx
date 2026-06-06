@@ -170,6 +170,7 @@ export function QrCodeDialog({ open, onOpenChange, petugas, onTokenRegenerated }
               size="icon"
               onClick={handleCopy}
               aria-label="Salin URL"
+              className="tap-target"
             >
               {copied ? (
                 <Check className="size-4 text-emerald-500" />

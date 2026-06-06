@@ -59,6 +59,11 @@ describe('QrCodeDialog', () => {
     expect(qr.getAttribute('data-value')).toMatch(/^https?:\/\/[^/]+\/survey\/tok123abc$/)
   })
 
+  it('tombol salin URL punya area sentuh nyaman (tap-target)', () => {
+    render(<QrCodeDialog open onOpenChange={() => {}} petugas={petugas} />)
+    expect(screen.getByRole('button', { name: /salin url/i })).toHaveClass('tap-target')
+  })
+
   it('tombol buat ulang token: konfirmasi lalu memanggil regenerateToken & callback', async () => {
     const { regenerateToken } = await import('@/lib/api')
     const onTokenRegenerated = vi.fn()
