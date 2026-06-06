@@ -21,4 +21,12 @@ describe('RekapTable sticky kolom Petugas (P-2)', () => {
     expect(cell!.className).toContain('sticky')
     expect(cell!.className).toContain('left-0')
   })
+
+  it('header kolom Petugas juga sticky di kiri', () => {
+    render(<RekapTable data={data} />)
+    const headerCell = screen.getByText('Petugas').closest('th')
+    expect(headerCell).not.toBeNull()
+    expect(headerCell!.className).toContain('sticky')
+    expect(headerCell!.className).toContain('left-0')
+  })
 })

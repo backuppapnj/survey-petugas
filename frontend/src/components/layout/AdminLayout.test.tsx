@@ -37,4 +37,19 @@ describe('AdminLayout', () => {
     // (mis. TabsList whitespace-nowrap) sehingga melebar & memicu scroll horizontal halaman.
     expect(main!.className).toContain('min-w-0')
   })
+
+  it('SidebarTrigger (pembuka drawer mobile) punya area sentuh nyaman (tap-target)', () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <Routes>
+          <Route element={<AdminLayout />}>
+            <Route path="/dashboard" element={<div>Konten</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    )
+    const trigger = container.querySelector('[data-sidebar="trigger"]')
+    expect(trigger).not.toBeNull()
+    expect(trigger!.className).toContain('tap-target')
+  })
 })
