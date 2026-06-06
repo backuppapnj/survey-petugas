@@ -100,15 +100,17 @@ final class RateLimitFilterTest extends CIUnitTestCase
 
     /**
      * Kirim satu submit survei valid untuk petugas aktif (id 1, dari seeder).
+     * Kontrak request publik kini memakai token, bukan petugas_id mentah.
      */
     private function submitSurvey()
     {
+        $token   = (new \App\Models\PetugasModel())->find(1)['survey_token'];
         $payload = json_encode([
-            'petugas_id' => 1,
-            'kecepatan'  => 5,
-            'keramahan'  => 5,
-            'informasi'  => 5,
-            'kenyamanan' => 5,
+            'token'      => $token,
+            'kecepatan'  => 4,
+            'keramahan'  => 4,
+            'informasi'  => 4,
+            'kenyamanan' => 4,
         ]);
 
         return $this->withBody($payload)
