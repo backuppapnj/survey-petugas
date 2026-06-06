@@ -19,4 +19,17 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  // Komponen primitif vendor (shadcn/ui & Magic UI) di-generate dan diperbarui
+  // lewat CLI: sengaja mengekspor varian/hook (cva, useFormField, useSidebar)
+  // dan memakai pola efek/animasi tertentu. Aturan berikut bersifat dev-only
+  // (Fast Refresh) atau pola vendor, sehingga dimatikan khusus folder ini agar
+  // tidak mengganggu pembaruan vendor — kode aplikasi tetap diawasi penuh.
+  {
+    files: ['src/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/purity': 'off',
+    },
+  },
 ])

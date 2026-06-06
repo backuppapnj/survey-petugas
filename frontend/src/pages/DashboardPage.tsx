@@ -84,10 +84,12 @@ export default function DashboardPage() {
         setLoadError('Gagal memuat dashboard. Periksa koneksi atau server, lalu coba lagi.')
         toast.error('Gagal memuat data rekap')
       } finally {
-        if (requestId !== latestRequestRef.current) return
-
-        setLoading(false)
-        setRefreshing(false)
+        // Hanya reset status jika ini request terbaru (hindari race antar-permintaan).
+        // Memakai if positif — bukan `return` di dalam finally (no-unsafe-finally).
+        if (requestId === latestRequestRef.current) {
+          setLoading(false)
+          setRefreshing(false)
+        }
       }
     },
     [activeRangeKey, end, hasValidDateRange, start],
