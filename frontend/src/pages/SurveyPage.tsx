@@ -32,7 +32,8 @@ const SARAN_MAX = 1000
 const EMPTY_RATINGS: Ratings = { kecepatan: 0, keramahan: 0, informasi: 0, kenyamanan: 0 }
 
 export default function SurveyPage() {
-  const { petugasId } = useParams<{ petugasId: string }>()
+  // Ambil token (16-karakter hex) dari parameter rute /survey/:token
+  const { token } = useParams<{ token: string }>()
   const [petugas, setPetugas] = useState<Petugas | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [notFound, setNotFound] = useState<boolean>(false)
@@ -44,19 +45,20 @@ export default function SurveyPage() {
   const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    if (!petugasId) return
+    // Hentikan jika token tidak tersedia di URL
+    if (!token) return
     /* eslint-disable react-hooks/set-state-in-effect */
     setLoading(true)
     setNotFound(false)
     /* eslint-enable react-hooks/set-state-in-effect */
-    getPetugas(Number(petugasId))
+    getPetugas(token)
       .then(setPetugas)
       .catch(() => {
         setNotFound(true)
         toast.error('Petugas tidak ditemukan atau sudah tidak aktif')
       })
       .finally(() => setLoading(false))
-  }, [petugasId])
+  }, [token])
 
   const filledCount = ASPEK.filter(({ key }) => ratings[key] > 0).length
   const isReady = filledCount === ASPEK.length
@@ -72,11 +74,12 @@ export default function SurveyPage() {
   }
 
   const handleSubmit = async () => {
-    if (!petugas || !isReady || submitting) return
+    if (!petugas || !isReady || submitting || !token) return
     setSubmitting(true)
     try {
+      // Kirim token dari URL sebagai pengenal survei — bukan petugas.id
       await submitSurvei({
-        petugas_id: petugas.id,
+        token,
         kecepatan: ratings.kecepatan,
         keramahan: ratings.keramahan,
         informasi: ratings.informasi,

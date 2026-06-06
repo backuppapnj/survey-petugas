@@ -5,10 +5,13 @@ export interface Petugas {
   loket: string
   unit_kerja: string
   is_active?: number
+  /** Token survei publik — hanya ada pada respons admin; respons publik tidak menyertakannya */
+  survey_token?: string
 }
 
 export interface SurveiPayload {
-  petugas_id: number
+  /** Token 16-karakter hex yang dipakai sebagai identifikasi survei (menggantikan petugas_id) */
+  token: string
   kecepatan: number
   keramahan: number
   informasi: number

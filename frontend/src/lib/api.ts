@@ -34,8 +34,9 @@ api.interceptors.response.use(
   },
 )
 
-export async function getPetugas(id: number): Promise<Petugas> {
-  return (await api.get<Petugas>(`/petugas/${id}`)).data
+/** Ambil data petugas aktif berdasarkan survey_token (16-karakter hex) — endpoint publik */
+export async function getPetugas(token: string): Promise<Petugas> {
+  return (await api.get<Petugas>(`/petugas/${token}`)).data
 }
 
 export async function submitSurvei(payload: SurveiPayload): Promise<{ message: string }> {
@@ -77,6 +78,11 @@ export async function deletePetugas(id: number): Promise<{ message: string }> {
 
 export async function restorePetugas(id: number): Promise<{ message: string }> {
   return (await api.post<{ message: string }>(`/admin/petugas/${id}/restore`)).data
+}
+
+/** Buat ulang survey_token petugas — hanya endpoint admin */
+export async function regenerateToken(id: number): Promise<{ survey_token: string }> {
+  return (await api.post<{ survey_token: string }>(`/admin/petugas/${id}/regenerate-token`)).data
 }
 
 export async function getRekap(start: string, end: string): Promise<RekapResponse> {
