@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Petugas } from '@/types'
 
@@ -10,6 +10,16 @@ vi.mock('qrcode.react', () => ({
   ),
 }))
 
+// Mock modul API agar tidak ada pemanggilan HTTP sungguhan dalam unit test
+vi.mock('@/lib/api', () => ({
+  regenerateToken: vi.fn().mockResolvedValue({ survey_token: 'tokBARU' }),
+}))
+
+// Mock toast sonner agar tidak ada efek samping notifikasi saat pengujian
+vi.mock('sonner', () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}))
+
 import { QrCodeDialog } from './QrCodeDialog'
 
 const petugas: Petugas = {
@@ -19,6 +29,7 @@ const petugas: Petugas = {
   loket: 'Loket 1',
   unit_kerja: 'Pelayanan Umum',
   is_active: 1,
+  survey_token: 'tok123abc',
 }
 
 describe('QrCodeDialog', () => {
@@ -35,7 +46,7 @@ describe('QrCodeDialog', () => {
     render(<QrCodeDialog open onOpenChange={() => {}} petugas={petugas} />)
 
     const qr = screen.getByTestId('qr-value')
-    expect(qr.getAttribute('data-value')).toMatch(/\/app\/survey\/3$/)
+    expect(qr.getAttribute('data-value')).toMatch(/\/app\/survey\/tok123abc$/)
   })
 
   it('tidak menambahkan slash ganda pada URL saat dev (BASE_URL = /)', () => {
@@ -44,7 +55,17 @@ describe('QrCodeDialog', () => {
     render(<QrCodeDialog open onOpenChange={() => {}} petugas={petugas} />)
 
     const qr = screen.getByTestId('qr-value')
-    // Tepat satu slash sebelum "survey" — origin + /survey/3, tanpa slash ganda.
-    expect(qr.getAttribute('data-value')).toMatch(/^https?:\/\/[^/]+\/survey\/3$/)
+    // Tepat satu slash sebelum "survey" — origin + /survey/tok123abc, tanpa slash ganda.
+    expect(qr.getAttribute('data-value')).toMatch(/^https?:\/\/[^/]+\/survey\/tok123abc$/)
+  })
+
+  it('tombol buat ulang token: konfirmasi lalu memanggil regenerateToken & callback', async () => {
+    const { regenerateToken } = await import('@/lib/api')
+    const onTokenRegenerated = vi.fn()
+    render(<QrCodeDialog open onOpenChange={() => {}} petugas={petugas} onTokenRegenerated={onTokenRegenerated} />)
+    fireEvent.click(screen.getByRole('button', { name: /buat ulang token/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^buat ulang$/i }))
+    await waitFor(() => expect(regenerateToken).toHaveBeenCalledWith(3))
+    await waitFor(() => expect(onTokenRegenerated).toHaveBeenCalledWith(3, 'tokBARU'))
   })
 })

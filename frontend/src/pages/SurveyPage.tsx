@@ -32,7 +32,8 @@ const SARAN_MAX = 1000
 const EMPTY_RATINGS: Ratings = { kecepatan: 0, keramahan: 0, informasi: 0, kenyamanan: 0 }
 
 export default function SurveyPage() {
-  const { petugasId } = useParams<{ petugasId: string }>()
+  // Ambil token (16-karakter hex) dari parameter rute /survey/:token
+  const { token } = useParams<{ token: string }>()
   const [petugas, setPetugas] = useState<Petugas | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [notFound, setNotFound] = useState<boolean>(false)
@@ -44,19 +45,20 @@ export default function SurveyPage() {
   const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    if (!petugasId) return
+    // Hentikan jika token tidak tersedia di URL
+    if (!token) return
     /* eslint-disable react-hooks/set-state-in-effect */
     setLoading(true)
     setNotFound(false)
     /* eslint-enable react-hooks/set-state-in-effect */
-    getPetugas(Number(petugasId))
+    getPetugas(token)
       .then(setPetugas)
       .catch(() => {
         setNotFound(true)
         toast.error('Petugas tidak ditemukan atau sudah tidak aktif')
       })
       .finally(() => setLoading(false))
-  }, [petugasId])
+  }, [token])
 
   const filledCount = ASPEK.filter(({ key }) => ratings[key] > 0).length
   const isReady = filledCount === ASPEK.length
@@ -72,11 +74,12 @@ export default function SurveyPage() {
   }
 
   const handleSubmit = async () => {
-    if (!petugas || !isReady || submitting) return
+    if (!petugas || !isReady || submitting || !token) return
     setSubmitting(true)
     try {
+      // Kirim token dari URL sebagai pengenal survei — bukan petugas.id
       await submitSurvei({
-        petugas_id: petugas.id,
+        token,
         kecepatan: ratings.kecepatan,
         keramahan: ratings.keramahan,
         informasi: ratings.informasi,
@@ -123,7 +126,7 @@ export default function SurveyPage() {
       <BlurFade delay={0.1}>
         <Card
           data-testid="survey-card"
-          className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-blue-500/20 bg-card/94 shadow-[0_30px_80px_-44px_rgba(37,99,235,0.6)] backdrop-blur-sm"
+          className="relative w-full max-w-md overflow-hidden rounded-3xl border border-blue-500/20 bg-card/95 shadow-[0_30px_80px_-44px_rgba(37,99,235,0.6)] backdrop-blur-sm"
         >
           <div className="absolute inset-x-6 top-0 h-1.5 rounded-full bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-300 opacity-90" />
           <BorderBeam size={250} duration={12} colorFrom="#38bdf8" colorTo="#2563eb" />

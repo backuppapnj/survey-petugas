@@ -18,7 +18,7 @@ describe('NotFoundPage', () => {
   it('menampilkan elemen visual biru pada halaman 404', () => {
     renderPage()
 
-    expect(screen.getByTestId('not-found-hexagon-pattern')).toBeInTheDocument()
+    expect(screen.getByTestId('not-found-grid-pattern')).toBeInTheDocument()
     expect(screen.getByTestId('not-found-icon-container')).toHaveClass(
       'bg-blue-500/10',
       'text-blue-600',

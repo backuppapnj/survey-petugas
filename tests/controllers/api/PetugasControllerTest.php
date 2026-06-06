@@ -28,7 +28,9 @@ final class PetugasControllerTest extends CIUnitTestCase
 
     public function testShowPublicMengembalikanPetugasAktif(): void
     {
-        $result = $this->call('get', '/api/petugas/1');
+        // Gunakan survey_token sebagai pengganti id numerik (public route kini by token).
+        $token  = (new \App\Models\PetugasModel())->find(1)['survey_token'];
+        $result = $this->call('get', "/api/petugas/{$token}");
 
         $result->assertStatus(200);
         $body = json_decode($result->getJSON(), true);
@@ -42,7 +44,8 @@ final class PetugasControllerTest extends CIUnitTestCase
         // Set foto agar serialisasi menghasilkan URL uploads yang valid.
         $this->db->table('petugas')->where('id', 1)->update(['foto' => 'contoh.png']);
 
-        $result = $this->call('get', '/api/petugas/1');
+        $token  = (new \App\Models\PetugasModel())->find(1)['survey_token'];
+        $result = $this->call('get', "/api/petugas/{$token}");
 
         $result->assertStatus(200);
         $body = json_decode($result->getJSON(), true);
@@ -53,7 +56,9 @@ final class PetugasControllerTest extends CIUnitTestCase
     {
         $this->db->table('petugas')->where('id', 1)->update(['is_active' => 0]);
 
-        $result = $this->call('get', '/api/petugas/1');
+        // Token masih valid, tapi petugas non-aktif — getActiveByToken harus kembalikan null.
+        $token  = (new \App\Models\PetugasModel())->find(1)['survey_token'];
+        $result = $this->call('get', "/api/petugas/{$token}");
 
         $result->assertStatus(404);
     }
@@ -82,5 +87,46 @@ final class PetugasControllerTest extends CIUnitTestCase
 
         $row = $this->db->table('petugas')->where('id', 1)->get()->getRowArray();
         $this->assertSame(0, (int) $row['is_active']);
+    }
+
+    public function testShowPublikMemakaiToken(): void
+    {
+        $token = (new \App\Models\PetugasModel())->find(1)['survey_token'];
+
+        $ok = $this->call('get', "/api/petugas/{$token}");
+        $ok->assertStatus(200);
+        $body = json_decode($ok->getJSON(), true);
+        $this->assertSame(1, $body['id']);
+
+        // Token asing (bukan id numerik) -> 404
+        $this->call('get', '/api/petugas/tokentidakada0')->assertStatus(404);
+    }
+
+    public function testShowPublicTidakMembocorkanSurveyToken(): void
+    {
+        // KONTRAK KEAMANAN: response publik TIDAK boleh menyertakan survey_token
+        // maupun is_active (keduanya hanya untuk konteks admin).
+        $token = (new \App\Models\PetugasModel())->find(1)['survey_token'];
+        $body  = json_decode($this->call('get', "/api/petugas/{$token}")->getJSON(), true);
+
+        $this->assertArrayNotHasKey('survey_token', $body);
+        $this->assertArrayNotHasKey('is_active', $body);
+    }
+
+    public function testRegenerateTokenButuhAuthDanMengubahToken(): void
+    {
+        $model = new \App\Models\PetugasModel();
+        $lama  = $model->find(1)['survey_token'];
+
+        $this->call('post', '/api/admin/petugas/1/regenerate-token')->assertStatus(401);
+
+        $jwt = (new \App\Libraries\JwtLibrary())->encode(['admin_id' => 1, 'username' => 'admin']);
+        $res = $this->withHeaders(['Authorization' => 'Bearer ' . $jwt])
+            ->call('post', '/api/admin/petugas/1/regenerate-token');
+        $res->assertStatus(200);
+
+        $baru = json_decode($res->getJSON(), true)['survey_token'];
+        $this->assertNotSame($lama, $baru);
+        $this->assertSame($baru, $model->find(1)['survey_token']);
     }
 }

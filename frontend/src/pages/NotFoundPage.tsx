@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, FileSearch } from 'lucide-react'
 import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
+import { AnimatedGridPattern } from '@/components/ui/animated-grid-pattern'
 import { Button } from '@/components/ui/button'
-import { HexagonPattern } from '@/components/ui/hexagon-pattern'
+import { cn } from '@/lib/utils'
 
 export default function NotFoundPage() {
   const navigate = useNavigate()
@@ -10,13 +11,17 @@ export default function NotFoundPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.16),_transparent_38%),linear-gradient(180deg,_rgba(248,250,252,0.98),_rgba(239,246,255,0.95))] p-4 dark:bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.22),_transparent_35%),linear-gradient(180deg,_rgba(2,6,23,0.96),_rgba(15,23,42,0.98))]">
-      <HexagonPattern
-        data-testid="not-found-hexagon-pattern"
-        radius={36}
-        gap={10}
-        className="text-sky-400/25 [mask-image:radial-gradient(520px_circle_at_center,white,transparent)]"
+      <AnimatedGridPattern
+        data-testid="not-found-grid-pattern"
+        numSquares={40}
+        maxOpacity={0.35}
+        duration={3.4}
+        repeatDelay={0.25}
+        className={cn(
+          'text-sky-400/40 [mask-image:radial-gradient(480px_circle_at_center,white,transparent)]',
+        )}
       />
-      <div className="relative max-w-md space-y-4 rounded-[28px] border border-blue-500/20 bg-card/94 p-8 text-center shadow-[0_28px_80px_-44px_rgba(37,99,235,0.55)] backdrop-blur-sm">
+      <div className="relative max-w-md space-y-4 rounded-3xl border border-blue-500/20 bg-card/95 p-8 text-center shadow-[0_28px_80px_-44px_rgba(37,99,235,0.55)] backdrop-blur-sm">
         <div
           data-testid="not-found-icon-container"
           className="mx-auto flex size-16 items-center justify-center rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-300"

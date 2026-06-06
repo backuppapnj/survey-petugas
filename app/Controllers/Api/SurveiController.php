@@ -24,7 +24,8 @@ class SurveiController extends ResourceController
         }
 
         $rules = [
-            'petugas_id' => 'required|integer',
+            // Kontrak request publik kini memakai token, bukan petugas_id mentah
+            'token'      => 'required|string',
             'kecepatan'  => 'required|integer|greater_than[0]|less_than[5]',
             'keramahan'  => 'required|integer|greater_than[0]|less_than[5]',
             'informasi'  => 'required|integer|greater_than[0]|less_than[5]',
@@ -40,17 +41,20 @@ class SurveiController extends ResourceController
             ]);
         }
 
-        $petugas = (new PetugasModel())->getActiveDetail((int) $json['petugas_id']);
+        // Resolusi token → petugas; mengembalikan null jika token tidak dikenal
+        // atau petugas tidak aktif
+        $petugas = (new PetugasModel())->getActiveByToken((string) $json['token']);
         if ($petugas === null) {
             return $this->response->setStatusCode(422)->setJSON([
                 'status'   => 422,
                 'error'    => 'Validation Error',
-                'messages' => ['petugas_id' => 'Petugas tidak ditemukan atau tidak aktif'],
+                'messages' => ['token' => 'Petugas tidak ditemukan atau tidak aktif'],
             ]);
         }
 
+        // Simpan survei dengan petugas_id internal (FK), bukan token publik
         (new SurveiModel())->insert([
-            'petugas_id' => (int) $json['petugas_id'],
+            'petugas_id' => (int) $petugas['id'],
             'kecepatan'  => (int) $json['kecepatan'],
             'keramahan'  => (int) $json['keramahan'],
             'informasi'  => (int) $json['informasi'],

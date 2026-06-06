@@ -5,11 +5,12 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import SurveyPage from './SurveyPage'
 import * as apiModule from '@/lib/api'
 
+// Render halaman survey pada rute /survey/:token sesuai skema baru
 const renderAt = (path: string) =>
   render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
-        <Route path="/survey/:petugasId" element={<SurveyPage />} />
+        <Route path="/survey/:token" element={<SurveyPage />} />
       </Routes>
     </MemoryRouter>,
   )
@@ -48,7 +49,7 @@ describe('SurveyPage', () => {
   it('menampilkan data petugas setelah load', async () => {
     vi.spyOn(apiModule, 'getPetugas').mockResolvedValue(fakePetugas)
 
-    renderAt('/survey/1')
+    renderAt('/survey/tok123')
 
     await waitFor(() => {
       expect(screen.getByText('Budi Santoso')).toBeInTheDocument()
@@ -59,7 +60,7 @@ describe('SurveyPage', () => {
   it('menonaktifkan submit jika belum semua aspek dirating', async () => {
     vi.spyOn(apiModule, 'getPetugas').mockResolvedValue(fakePetugas)
 
-    renderAt('/survey/1')
+    renderAt('/survey/tok123')
     await waitFor(() => screen.getByText('Budi Santoso'))
 
     const submit = screen.getByTestId('submit-survey')
@@ -68,7 +69,7 @@ describe('SurveyPage', () => {
 
   it('menampilkan progress aspek', async () => {
     vi.spyOn(apiModule, 'getPetugas').mockResolvedValue(fakePetugas)
-    renderAt('/survey/1')
+    renderAt('/survey/tok123')
     await waitFor(() => screen.getByText('Budi Santoso'))
     expect(screen.getByText('0 / 4 aspek')).toBeInTheDocument()
   })
@@ -76,12 +77,12 @@ describe('SurveyPage', () => {
   it('menampilkan styling premium biru pada elemen utama', async () => {
     vi.spyOn(apiModule, 'getPetugas').mockResolvedValue(fakePetugas)
 
-    renderAt('/survey/1')
+    renderAt('/survey/tok123')
 
     await waitFor(() => screen.getByText('Budi Santoso'))
 
     expect(screen.getByTestId('survey-grid-pattern')).toBeInTheDocument()
-    expect(screen.getByTestId('survey-card')).toHaveClass('rounded-[32px]', 'border-blue-500/20')
+    expect(screen.getByTestId('survey-card')).toHaveClass('rounded-3xl', 'border-blue-500/20')
     expect(screen.getByTestId('survey-avatar-fallback')).toHaveClass(
       'from-sky-500',
       'to-blue-600',
@@ -96,7 +97,7 @@ describe('SurveyPage', () => {
       .spyOn(apiModule, 'submitSurvei')
       .mockResolvedValue({ message: 'Terima kasih' })
 
-    renderAt('/survey/1')
+    renderAt('/survey/tok123')
     await waitFor(() => screen.getByText('Budi Santoso'))
 
     // Pilih "Sangat Baik (nilai 4)" pada setiap radiogroup RatingScale (skala 1-4)
@@ -112,8 +113,9 @@ describe('SurveyPage', () => {
     await user.click(submit)
 
     await waitFor(() => {
+      // Payload sekarang menggunakan token dari URL, bukan petugas_id
       expect(submitSpy).toHaveBeenCalledWith({
-        petugas_id: 1,
+        token: 'tok123',
         kecepatan: 4,
         keramahan: 4,
         informasi: 4,
@@ -132,7 +134,7 @@ describe('SurveyPage', () => {
         }),
     )
 
-    renderAt('/survey/1')
+    renderAt('/survey/tok123')
     await waitFor(() => screen.getByText('Budi Santoso'))
 
     // Pilih "Sangat Baik (nilai 4)" pada setiap radiogroup RatingScale (skala 1-4)
@@ -162,7 +164,7 @@ describe('SurveyPage', () => {
     vi.spyOn(apiModule, 'submitSurvei').mockResolvedValue({ message: 'Terima kasih' })
     const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout')
 
-    renderAt('/survey/1')
+    renderAt('/survey/tok123')
     await waitFor(() => screen.getByText('Budi Santoso'))
 
     // Pilih "Sangat Baik (nilai 4)" pada setiap radiogroup RatingScale (skala 1-4)

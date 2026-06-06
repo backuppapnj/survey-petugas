@@ -20,10 +20,29 @@ final class SurveiControllerTest extends CIUnitTestCase
     protected $seed      = 'App\Database\Seeds\DatabaseSeeder';
     protected $namespace = 'App';
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Bersihkan cache throttler agar token bucket tidak bocor antar test case
+        // maupun antar test class (konsisten dengan pola RateLimitFilterTest).
+        cache()->clean();
+        // Reset singleton throttler agar instance baru membaca cache yang bersih.
+        \CodeIgniter\Config\Services::resetSingle('throttler');
+    }
+
+    protected function tearDown(): void
+    {
+        cache()->clean();
+        \CodeIgniter\Config\Services::resetSingle('throttler');
+        parent::tearDown();
+    }
+
     public function testSubmitSuksesDenganRatingValid(): void
     {
+        $token = (new \App\Models\PetugasModel())->find(1)['survey_token'];
+
         $result = $this->withBodyFormat('json')->call('post', '/api/survei', [
-            'petugas_id' => 1,
+            'token'      => $token,
             'kecepatan'  => 4,
             'keramahan'  => 3,
             'informasi'  => 4,
@@ -32,15 +51,15 @@ final class SurveiControllerTest extends CIUnitTestCase
         ]);
 
         $result->assertStatus(201);
-
-        $count = $this->db->table('survei')->countAllResults();
-        $this->assertSame(1, $count);
+        $this->assertSame(1, $this->db->table('survei')->countAllResults());
     }
 
     public function testSubmitGagalDenganRatingDiluar1Sampai4(): void
     {
+        $token = (new \App\Models\PetugasModel())->find(1)['survey_token'];
+
         $result = $this->withBodyFormat('json')->call('post', '/api/survei', [
-            'petugas_id' => 1,
+            'token'      => $token,
             'kecepatan'  => 5,
             'keramahan'  => 3,
             'informasi'  => 4,
@@ -52,14 +71,22 @@ final class SurveiControllerTest extends CIUnitTestCase
 
     public function testSubmitGagalUntukPetugasNonAktif(): void
     {
+        $token = (new \App\Models\PetugasModel())->find(1)['survey_token'];
         $this->db->table('petugas')->where('id', 1)->update(['is_active' => 0]);
 
         $result = $this->withBodyFormat('json')->call('post', '/api/survei', [
-            'petugas_id' => 1,
-            'kecepatan'  => 4,
-            'keramahan'  => 4,
-            'informasi'  => 4,
-            'kenyamanan' => 4,
+            'token'      => $token,
+            'kecepatan'  => 4, 'keramahan' => 4, 'informasi' => 4, 'kenyamanan' => 4,
+        ]);
+
+        $result->assertStatus(422);
+    }
+
+    public function testSubmitGagalTokenTidakDikenal(): void
+    {
+        $result = $this->withBodyFormat('json')->call('post', '/api/survei', [
+            'token'      => 'tokenpalsu000000',
+            'kecepatan'  => 4, 'keramahan' => 4, 'informasi' => 4, 'kenyamanan' => 4,
         ]);
 
         $result->assertStatus(422);

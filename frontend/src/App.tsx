@@ -27,8 +27,8 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {/* Survey publik (kiosk-friendly) */}
-        <Route path="/survey/:petugasId" element={<SurveyPage />} />
+        {/* Survey publik (kiosk-friendly) — parameter :token adalah 16-karakter hex */}
+        <Route path="/survey/:token" element={<SurveyPage />} />
 
         {/* Login admin */}
         <Route path="/login" element={<LoginPage />} />

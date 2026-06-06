@@ -39,15 +39,18 @@ final class AnomalyServiceTest extends CIUnitTestCase
 
     private function seedPetugas(int $id, string $nama): void
     {
+        // survey_token wajib ada (NOT NULL) sejak migration token-survey;
+        // setiap test helper yang insert langsung harus menyertakannya.
         db_connect()->table('petugas')->insert([
-            'id' => $id,
-            'nama' => $nama,
-            'foto' => 'x.png',
-            'loket' => 'L1',
-            'unit_kerja' => 'Umum',
-            'is_active' => 1,
-            'created_at' => '2026-06-01 08:00:00',
-            'updated_at' => '2026-06-01 08:00:00',
+            'id'           => $id,
+            'nama'         => $nama,
+            'foto'         => 'x.png',
+            'loket'        => 'L1',
+            'unit_kerja'   => 'Umum',
+            'is_active'    => 1,
+            'survey_token' => bin2hex(random_bytes(8)),
+            'created_at'   => '2026-06-01 08:00:00',
+            'updated_at'   => '2026-06-01 08:00:00',
         ]);
     }
 
