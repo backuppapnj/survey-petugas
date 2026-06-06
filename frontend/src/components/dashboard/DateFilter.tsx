@@ -142,27 +142,29 @@ export function DateFilter({
 
       {/* Custom range + filter unit + ekspor */}
       <div className="flex flex-col gap-3 md:flex-row md:items-end">
-        <div className="space-y-1">
-          <Label htmlFor="start">Mulai</Label>
-          <Input
-            id="start"
-            type="date"
-            value={start}
-            max={end}
-            onChange={(e) => onStartChange(e.target.value)}
-            className={cn(invalid && 'border-destructive')}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="end">Selesai</Label>
-          <Input
-            id="end"
-            type="date"
-            value={end}
-            min={start}
-            onChange={(e) => onEndChange(e.target.value)}
-            className={cn(invalid && 'border-destructive')}
-          />
+        <div className="grid grid-cols-2 gap-3 md:contents">
+          <div className="space-y-1">
+            <Label htmlFor="start">Mulai</Label>
+            <Input
+              id="start"
+              type="date"
+              value={start}
+              max={end}
+              onChange={(e) => onStartChange(e.target.value)}
+              className={cn(invalid && 'border-destructive')}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="end">Selesai</Label>
+            <Input
+              id="end"
+              type="date"
+              value={end}
+              min={start}
+              onChange={(e) => onEndChange(e.target.value)}
+              className={cn(invalid && 'border-destructive')}
+            />
+          </div>
         </div>
 
         {onUnitKerjaChange && unitOptions && unitOptions.length > 0 && (
@@ -185,7 +187,7 @@ export function DateFilter({
         )}
 
         <div className="flex items-center gap-2 md:ml-auto">
-          <Button onClick={reset} variant="ghost" size="sm" type="button" title="Reset ke 30 hari terakhir">
+          <Button onClick={reset} variant="ghost" size="sm" type="button" title="Reset ke 30 hari terakhir" className="tap-target">
             <RotateCcw className="size-4" />
             <span className="sr-only">Reset</span>
           </Button>
