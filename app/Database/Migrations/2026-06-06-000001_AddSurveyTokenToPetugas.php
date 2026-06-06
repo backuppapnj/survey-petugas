@@ -27,8 +27,15 @@ class AddSurveyTokenToPetugas extends Migration
         //    testing environment yang memakai DBPrefix 'db_'.
         $prefix = $this->db->DBPrefix;
         $rows   = $this->db->query("SELECT id FROM {$prefix}petugas")->getResultArray();
+        $used   = [];
         foreach ($rows as $row) {
-            $token = bin2hex(random_bytes(8));
+            // Jamin token unik dalam batch backfill agar CREATE UNIQUE INDEX
+            // (step 3) tidak gagal akibat bentrokan (peluang kecil namun mungkin).
+            do {
+                $token = bin2hex(random_bytes(8));
+            } while (isset($used[$token]));
+            $used[$token] = true;
+
             $this->db->query(
                 "UPDATE {$prefix}petugas SET survey_token = ? WHERE id = ?",
                 [$token, $row['id']]
@@ -42,9 +49,10 @@ class AddSurveyTokenToPetugas extends Migration
 
     public function down()
     {
-        $prefix = $this->db->DBPrefix;
-        // Hapus index unik terlebih dahulu sebelum drop kolom.
-        $this->db->query("DROP INDEX IF EXISTS idx_petugas_survey_token");
+        // dropColumn menghapus kolom beserta unique index-nya secara portabel:
+        // MySQL melepas index saat kolom di-drop, SQLite membangun ulang tabel.
+        // Hindari "DROP INDEX IF EXISTS <idx>" tanpa klausa ON yang hanya valid
+        // di SQLite dan akan menggagalkan rollback di MySQL.
         $this->forge->dropColumn('petugas', 'survey_token');
     }
 }

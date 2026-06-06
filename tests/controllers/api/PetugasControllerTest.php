@@ -98,7 +98,19 @@ final class PetugasControllerTest extends CIUnitTestCase
         $body = json_decode($ok->getJSON(), true);
         $this->assertSame(1, $body['id']);
 
-        $this->call('get', '/api/petugas/999999')->assertStatus(404);
+        // Token asing (bukan id numerik) -> 404
+        $this->call('get', '/api/petugas/tokentidakada0')->assertStatus(404);
+    }
+
+    public function testShowPublicTidakMembocorkanSurveyToken(): void
+    {
+        // KONTRAK KEAMANAN: response publik TIDAK boleh menyertakan survey_token
+        // maupun is_active (keduanya hanya untuk konteks admin).
+        $token = (new \App\Models\PetugasModel())->find(1)['survey_token'];
+        $body  = json_decode($this->call('get', "/api/petugas/{$token}")->getJSON(), true);
+
+        $this->assertArrayNotHasKey('survey_token', $body);
+        $this->assertArrayNotHasKey('is_active', $body);
     }
 
     public function testRegenerateTokenButuhAuthDanMengubahToken(): void
