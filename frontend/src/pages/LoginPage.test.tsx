@@ -90,4 +90,11 @@ describe('LoginPage', () => {
 
     expect(toggleButton).toHaveFocus()
   })
+
+  it('kontainer halaman memakai min-h-dvh (mobile address-bar friendly)', () => {
+    const { container } = renderPage()
+    const root = container.firstChild as HTMLElement
+    expect(root.className).toContain('min-h-dvh')
+    expect(root.className).not.toContain('min-h-screen')
+  })
 })
