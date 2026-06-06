@@ -131,7 +131,7 @@ export function AdminLayout() {
           data-testid="admin-layout-header"
           className="sticky top-0 z-10 flex items-center gap-3 border-b border-white/8 bg-background/80 px-4 py-3 backdrop-blur-md"
         >
-          <SidebarTrigger />
+          <SidebarTrigger className="tap-target" />
           <div className="flex-1">
             <h2 className="text-sm font-medium text-muted-foreground">
               {currentPage?.title ?? 'Admin'}

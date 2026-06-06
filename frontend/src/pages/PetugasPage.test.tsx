@@ -76,6 +76,17 @@ describe('PetugasPage', () => {
     expect(screen.getByText('Budi').closest('tr')).toHaveClass('hover:bg-blue-500/5')
   })
 
+  it('tombol menu aksi per baris punya area sentuh nyaman (tap-target)', async () => {
+    vi.spyOn(apiModule, 'getAdminPetugas').mockResolvedValue(fakePetugas)
+    render(
+      <MemoryRouter>
+        <PetugasPage />
+      </MemoryRouter>,
+    )
+    const aksi = await screen.findByRole('button', { name: /aksi untuk budi/i })
+    expect(aksi).toHaveClass('tap-target')
+  })
+
   it('menampilkan empty state dan tombol tambah petugas dengan aksen biru', async () => {
     vi.spyOn(apiModule, 'getAdminPetugas').mockResolvedValue([])
 

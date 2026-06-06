@@ -74,6 +74,11 @@ describe('LoginPage', () => {
     })
   })
 
+  it('tombol tampilkan password punya area sentuh nyaman (tap-target)', () => {
+    renderPage()
+    expect(screen.getByRole('button', { name: /tampilkan kata sandi/i })).toHaveClass('tap-target')
+  })
+
   it('mengizinkan tombol tampilkan password diakses lewat keyboard', async () => {
     renderPage()
     const user = userEvent.setup()
