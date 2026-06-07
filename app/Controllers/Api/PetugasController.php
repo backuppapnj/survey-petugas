@@ -246,7 +246,7 @@ class PetugasController extends ResourceController
      * @param \CodeIgniter\HTTP\UploadedFile $file File yang diupload
      * @return array ['valid' => bool, 'error' => string|null, 'filename' => string|null]
      */
-    private function validateSecureUpload(\CodeIgniter\HTTP\UploadedFile $file): array
+    private function validateSecureUpload(\CodeIgniter\HTTP\Files\UploadedFile $file): array
     {
         // Cek apakah file benar-benar diupload
         if (!$file || !$file->isValid()) {

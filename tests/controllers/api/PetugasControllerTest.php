@@ -129,4 +129,39 @@ final class PetugasControllerTest extends CIUnitTestCase
         $this->assertNotSame($lama, $baru);
         $this->assertSame($baru, $model->find(1)['survey_token']);
     }
+
+    public function testCreateAdminDenganUploadFotoBerhasil(): void
+    {
+        // Regresi: validateSecureUpload() harus menerima UploadedFile dari
+        // namespace CodeIgniter\HTTP\Files (bukan CodeIgniter\HTTP) — type hint
+        // yang salah sebelumnya menyebabkan TypeError 500 saat menyimpan petugas.
+        $tmp = tempnam(sys_get_temp_dir(), 'pty') . '.jpg';
+        $im  = imagecreatetruecolor(48, 48);
+        imagejpeg($im, $tmp, 90);
+        imagedestroy($im);
+
+        // isValid() butuh file dianggap hasil upload HTTP; pakai mode test (5th arg true).
+        $file = new \CodeIgniter\HTTP\Files\UploadedFile(
+            $tmp,
+            'foto.jpg',
+            'image/jpeg',
+            filesize($tmp),
+            UPLOAD_ERR_OK,
+        );
+
+        $controller = new \App\Controllers\Api\PetugasController();
+        $method     = (new \ReflectionClass($controller))->getMethod('validateSecureUpload');
+        $method->setAccessible(true);
+
+        // Pemanggilan ini akan melempar TypeError jika type hint salah (regresi
+        // utama). Lolos tanpa TypeError + mengembalikan array berarti type hint
+        // CodeIgniter\HTTP\Files\UploadedFile sudah benar.
+        $result = $method->invoke($controller, $file);
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('valid', $result);
+        $this->assertArrayHasKey('filename', $result);
+
+        @unlink($tmp);
+    }
 }
