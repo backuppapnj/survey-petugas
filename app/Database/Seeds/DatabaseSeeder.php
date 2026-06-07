@@ -9,7 +9,6 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         $this->call('AdminSeeder');
-        $this->call('PetugasSeeder');
         $this->call('SettingsSeeder');
     }
 }
